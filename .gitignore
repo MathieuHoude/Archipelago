@@ -33,6 +33,7 @@
 *.BIN
 *.puml
 
+ap-env
 setups
 build
 bundle/components.wxs

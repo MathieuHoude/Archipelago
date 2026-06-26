@@ -19,7 +19,11 @@ hirom
 !AP_RECV_INDEX_HI  = $7E1FA8
 !AP_CONNECTION     = $7E1FA9
 !AP_RUNTIME_START  = $7E1FA1
+!MM7_PROTO_FLAGS    = $7E0B78
 
+!AP_PROTO_CHECKS    = $7E1FA2 ; already AP_BOSS_FLAGS_2
+!AP_PROTO_ITEMS     = $7E1FAA ; AP-owned randomized Proto clues
+!AP_TEMP            = $7E1FAB
 ; ============================================
 ; Flags to have all 8 stages at once
 ; ============================================
@@ -67,20 +71,13 @@ org $C000AF
     NOP
 
 ; ============================================
-; Boss weapon grant hook
-; Replaces:
-;   C00DCB: LDA #$80
-;   C00DCD: STA $0B83,X
-;
-; For now this preserves the vanilla weapon grant while also
-; setting an AP boss flag. Once verified, remove the vanilla
-; STA inside AP_BossDefeated.
+; Vanilla boss weapon grant left restored but bypassed.
+; Boss rewards are AP-only via AP_StageExitAPOnlyBossGate.
 ; ============================================
 
 org $C00DCB
-    JSL AP_BossDefeated
-    NOP
-
+    LDA #$80
+    STA $0B83,X
 ; ============================================
 ; Free ROM space routines
 ; ============================================
@@ -243,6 +240,18 @@ AP_CheckItemReceive:
     JMP .give_beat_whistle
 +
 
+    ; $1D = Proto Man Cloud Man clue
+    CMP #$1D
+    BNE +
+    JMP .give_proto_cloud_clue
++
+
+    ; $1E = Proto Man Turbo Man clue
+    CMP #$1E
+    BNE +
+    JMP .give_proto_turbo_clue
++
+
     JMP .finish
 
 .give_weapon_table:
@@ -330,6 +339,32 @@ AP_CheckItemReceive:
     STA.l $7E0BA3
     JMP .finish
 
+.give_proto_cloud_clue:
+    ; AP owns Proto clue bit 0.
+    LDA.l !AP_PROTO_ITEMS
+    ORA #$01
+    STA.l !AP_PROTO_ITEMS
+
+    ; Also set the vanilla clue bit so the game can use it.
+    LDA.l !MM7_PROTO_FLAGS
+    ORA #$01
+    STA.l !MM7_PROTO_FLAGS
+
+    JMP .finish
+
+.give_proto_turbo_clue:
+    ; AP owns Proto clue bit 1.
+    LDA.l !AP_PROTO_ITEMS
+    ORA #$02
+    STA.l !AP_PROTO_ITEMS
+
+    ; Also set the vanilla clue bit so the game can use it.
+    LDA.l !MM7_PROTO_FLAGS
+    ORA #$02
+    STA.l !MM7_PROTO_FLAGS
+
+    JMP .finish
+
 .finish:
     ; Increment 16-bit received index stored as two bytes.
     LDA.l !AP_RECV_INDEX_LO
@@ -393,28 +428,6 @@ AP_AddLargeBolts:
 
 org $C07E80
 
-AP_BossDefeated:
-    PHP
-    SEP #$30
-    PHX
-
-    ; Debug marker. Remove later if desired.
-    LDA #$77
-    STA.l !AP_DEBUG_FLAGS
-
-    ; X is stage_id * 2 here. Convert to stage_id.
-    TXA
-    LSR
-    TAX
-
-    LDA.l AP_BossBitMaskTable,x
-    ORA.l !AP_BOSS_FLAGS
-    STA.l !AP_BOSS_FLAGS
-
-    PLX
-    LDA #$80
-    PLP
-    RTL
 
 AP_BossBitMaskTable:
     db $00 ; index 0 unused / unknown
@@ -492,3 +505,125 @@ AP_StageSelectBitMaskTable:
     db $20 ; X=$0C
     db $40 ; X=$0E
     db $80 ; X=$10
+
+org $C3035F
+    JSL AP_LoadBossDefeatedState
+
+org $C07F00
+    AP_LoadBossDefeatedState:
+        PHP
+        SEP #$30
+        PHX
+
+        ; X is stage_id * 2 here.
+        TXA
+        LSR
+        TAX
+
+        LDA.l AP_BossBitMaskTable,x
+        AND.l !AP_BOSS_FLAGS
+        BEQ .not_defeated
+
+    .defeated:
+        PLX
+        PLP
+        SEC
+        LDA #$80
+        RTL
+
+    .not_defeated:
+        PLX
+        PLP
+        CLC
+        LDA #$00
+        RTL
+
+org $C2C4B3
+    JML AP_ProtoCloudMeetingGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C07F30
+    AP_ProtoCloudMeetingGate:
+        PHP
+        SEP #$20
+
+        ; If AP already recorded this Proto Man meeting check, skip it.
+        LDA.l !AP_PROTO_CHECKS
+        AND #$01
+        BNE .Skip
+
+        ; Otherwise record the AP check and continue to vanilla meeting/event path.
+        LDA.l !AP_PROTO_CHECKS
+        ORA #$01
+        STA.l !AP_PROTO_CHECKS
+
+        PLP
+        JML $C2C4ED
+
+    .Skip:
+        PLP
+        JML $C2C4BF
+
+
+; AP-only boss reward gate.
+; Always records the AP boss flag and skips vanilla weapon-get.
+org $C00DBC
+    JML AP_StageExitAPOnlyBossGate
+    NOP
+
+org $C07F60
+
+AP_StageExitAPOnlyBossGate:
+    PHP
+    SEP #$30
+    PHX
+
+    ; X is stage_id * 2 here.
+    ; Record the boss as defeated for AP.
+    TXA
+    LSR
+    TAX
+
+    LDA.l AP_BossBitMaskTable,x
+    ORA.l !AP_BOSS_FLAGS
+    STA.l !AP_BOSS_FLAGS
+
+    PLX
+    PLP
+
+    ; Skip vanilla weapon-get / boss weapon grant.
+    JML $C00DDC
+
+org $C00DE1
+    JML AP_WilyUnlockGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C07F90
+    AP_WilyUnlockGate:
+        PHP
+        SEP #$20
+
+        LDA.l !AP_BOSS_FLAGS
+        CMP #$FF
+        BEQ .all_defeated
+
+    .not_all_defeated:
+        PLP
+        JML $C00E08
+
+    .all_defeated:
+        PLP
+        JML $C00DEC

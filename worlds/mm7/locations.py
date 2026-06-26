@@ -69,66 +69,66 @@ location_table: Dict[str, MM7LocationData] = {
     # ========================================================
     # Main boss item checks — randomized item locations
     # ========================================================
-    names.burst_man_defeated_item:  MM7LocationData(None, BURST_MAN),
-    names.cloud_man_defeated_item:  MM7LocationData(None, CLOUD_MAN),
-    names.junk_man_defeated_item:   MM7LocationData(None, JUNK_MAN),
-    names.freeze_man_defeated_item: MM7LocationData(None, FREEZE_MAN),
-    names.slash_man_defeated_item:  MM7LocationData(None, SLASH_MAN),
-    names.spring_man_defeated_item: MM7LocationData(None, SPRING_MAN),
-    names.shade_man_defeated_item:  MM7LocationData(None, SHADE_MAN),
-    names.turbo_man_defeated_item:  MM7LocationData(None, TURBO_MAN),
+    names.freeze_man_defeated_item: MM7LocationData(0x08, FREEZE_MAN),
+    names.cloud_man_defeated_item:  MM7LocationData(0x09, CLOUD_MAN),
+    names.junk_man_defeated_item:   MM7LocationData(0x0A, JUNK_MAN),
+    names.turbo_man_defeated_item:  MM7LocationData(0x0B, TURBO_MAN),
+    names.slash_man_defeated_item:  MM7LocationData(0x0C, SLASH_MAN),
+    names.shade_man_defeated_item:  MM7LocationData(0x0D, SHADE_MAN),
+    names.burst_man_defeated_item:  MM7LocationData(0x0E, BURST_MAN),
+    names.spring_man_defeated_item: MM7LocationData(0x0F, SPRING_MAN),
 
     # ========================================================
     # Fortress / midboss checks
     # ========================================================
-    names.mash_defeated:       MM7LocationData(0x08, ROBOT_MUSEUM),
-    names.guts_man_g_defeated: MM7LocationData(0x09, WILY_1),
-    names.gamerizer_defeated:  MM7LocationData(0x0A, WILY_2),
-    names.hannya_ned_defeated: MM7LocationData(0x0B, WILY_3),
+    names.mash_defeated:       MM7LocationData(0x10, ROBOT_MUSEUM),
+    names.guts_man_g_defeated: MM7LocationData(0x11, WILY_1),
+    names.gamerizer_defeated:  MM7LocationData(0x12, WILY_2),
+    names.hannya_ned_defeated: MM7LocationData(0x13, WILY_3),
 
     # ========================================================
     # Proto Man — locked clue events and randomized shield check
     # ========================================================
-    names.proto_man_cloud_man_loc: MM7LocationData(None, CLOUD_MAN),
-    names.proto_man_turbo_man_loc: MM7LocationData(None, TURBO_MAN),
-    names.proto_shield_loc:        MM7LocationData(0x0C, SHADE_MAN),
+    names.proto_man_cloud_man_loc: MM7LocationData(0x14, CLOUD_MAN),
+    names.proto_man_turbo_man_loc: MM7LocationData(0x15, TURBO_MAN),
+    names.proto_shield_loc:        MM7LocationData(0x16, SHADE_MAN),
 
     # ========================================================
     # Bass checks
     # ========================================================
-    names.bass_intro:  MM7LocationData(0x0D, ROBOT_MUSEUM),
-    names.bass_wily_1: MM7LocationData(0x0E, WILY_1),
-    names.bass_wily_2: MM7LocationData(0x0F, WILY_2),
+    names.bass_intro:  MM7LocationData(0x17, ROBOT_MUSEUM),
+    names.bass_wily_1: MM7LocationData(0x18, WILY_1),
+    names.bass_wily_2: MM7LocationData(0x19, WILY_2),
 
     # ========================================================
     # Rush Plates and unique upgrade pickups — 0x0BA4 bitfield
     # ========================================================
-    names.rush_r_plate_loc:            MM7LocationData(0x10, BURST_MAN),
-    names.rush_u_plate_loc:            MM7LocationData(0x11, CLOUD_MAN),
-    names.rush_s_plate_loc:            MM7LocationData(0x12, JUNK_MAN),
-    names.rush_h_plate_loc:            MM7LocationData(0x13, FREEZE_MAN),
-    names.hyper_bolt_loc:              MM7LocationData(0x14, SPRING_MAN),
-    names.exit_unit_loc:               MM7LocationData(0x15, FREEZE_MAN),
-    names.hyper_rocket_buster_loc:     MM7LocationData(0x16, TURBO_MAN),
-    names.energy_balancer_loc:         MM7LocationData(0x17, SHADE_MAN),
-    names.beat_loc:                    MM7LocationData(0x18, SLASH_MAN),
+    names.rush_r_plate_loc:            MM7LocationData(0x20, BURST_MAN),
+    names.rush_u_plate_loc:            MM7LocationData(0x21, CLOUD_MAN),
+    names.rush_s_plate_loc:            MM7LocationData(0x22, JUNK_MAN),
+    names.rush_h_plate_loc:            MM7LocationData(0x23, FREEZE_MAN),
+    names.hyper_bolt_loc:              MM7LocationData(0x24, SPRING_MAN),
+    names.exit_unit_loc:               MM7LocationData(0x25, FREEZE_MAN),
+    names.hyper_rocket_buster_loc:     MM7LocationData(0x26, TURBO_MAN),
+    names.energy_balancer_loc:         MM7LocationData(0x27, SHADE_MAN),
+    names.beat_loc:                    MM7LocationData(0x28, SLASH_MAN),
 
     # ========================================================
     # Rush item pickups
     # ========================================================
-    names.rush_coil_loc:   MM7LocationData(0x19, BURST_MAN),
-    names.rush_search_loc: MM7LocationData(0x1A, FREEZE_MAN),
-    names.rush_jet_loc:    MM7LocationData(0x1B, JUNK_MAN),
+    names.rush_coil_loc:   MM7LocationData(0x29, BURST_MAN),
+    names.rush_search_loc: MM7LocationData(0x2A, FREEZE_MAN),
+    names.rush_jet_loc:    MM7LocationData(0x2B, JUNK_MAN),
 
     # ========================================================
     # Mega Bolts and Mega Health Capsule — 0x0BB1 bitfield
     # ========================================================
-    names.mega_bolt_cloud_man_loc:   MM7LocationData(0x1C, CLOUD_MAN),
-    names.mega_bolt_spring_man_loc:  MM7LocationData(0x1D, SPRING_MAN),
-    names.mega_bolt_shade_man_loc:   MM7LocationData(0x1E, SHADE_MAN),
-    names.mega_bolt_turbo_man_loc:   MM7LocationData(0x1F, TURBO_MAN),
-    names.mega_bolt_junk_man_loc:    MM7LocationData(0x20, JUNK_MAN),
-    names.mega_health_capsule_loc:   MM7LocationData(0x21, SPRING_MAN),
+    names.mega_bolt_cloud_man_loc:   MM7LocationData(0x2C, CLOUD_MAN),
+    names.mega_bolt_spring_man_loc:  MM7LocationData(0x2D, SPRING_MAN),
+    names.mega_bolt_shade_man_loc:   MM7LocationData(0x2E, SHADE_MAN),
+    names.mega_bolt_turbo_man_loc:   MM7LocationData(0x2F, TURBO_MAN),
+    names.mega_bolt_junk_man_loc:    MM7LocationData(0x30, JUNK_MAN),
+    names.mega_health_capsule_loc:   MM7LocationData(0x31, SPRING_MAN),
 
     # ========================================================
     # Goal
@@ -141,10 +141,42 @@ location_table: Dict[str, MM7LocationData] = {
 # Derived tables
 # ============================================================
 
+minimal_boss_locations = [
+    names.freeze_man_defeated,
+    names.cloud_man_defeated,
+    names.junk_man_defeated,
+    names.turbo_man_defeated,
+    names.slash_man_defeated,
+    names.shade_man_defeated,
+    names.burst_man_defeated,
+    names.spring_man_defeated,
+]
+
+boss_item_locations = [
+    names.freeze_man_defeated_item,
+    names.cloud_man_defeated_item,
+    names.junk_man_defeated_item,
+    names.turbo_man_defeated_item,
+    names.slash_man_defeated_item,
+    names.shade_man_defeated_item,
+    names.burst_man_defeated_item,
+    names.spring_man_defeated_item,
+]
+
+proto_man_check_locations = [
+    names.proto_man_cloud_man_loc,
+    names.proto_man_turbo_man_loc,
+]
+
+active_locations = (
+    minimal_boss_locations
+    + boss_item_locations
+    + proto_man_check_locations
+)
+
 location_name_to_id: Dict[str, int] = {
-    location_name: MM7_LOCATION_ID_BASE + data.code
-    for location_name, data in location_table.items()
-    if data.code is not None
+    location_name: MM7_LOCATION_ID_BASE + index
+    for index, location_name in enumerate(active_locations)
 }
 
 location_id_to_name: Dict[int, str] = {
@@ -169,8 +201,6 @@ regions: Set[str] = {
 # Values are item names from items.py that should be created as locked events.
 
 event_location_to_item: Dict[str, str] = {
-    names.proto_man_cloud_man_loc: names.proto_man_cloud_man,
-    names.proto_man_turbo_man_loc: names.proto_man_turbo_man,
     names.wily_capsule: names.wily_capsule,
 }
 

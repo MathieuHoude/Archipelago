@@ -250,6 +250,9 @@ rom_receive_id = {
     names.w_tank: 0x1A,
     names.s_tank: 0x1B,
     names.beat_whistle: 0x1C,
+
+    names.proto_man_cloud_man: 0x1D,
+    names.proto_man_turbo_man: 0x1E,
 }
 
 

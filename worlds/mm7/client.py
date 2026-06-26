@@ -12,8 +12,6 @@ from .locations import location_name_to_id
 
 snes_logger = logging.getLogger("SNES")
 
-print("MM7 CLIENT.PY LOADED")
-
 # FXPAK Pro / SNI memory mapping.
 # See existing SNES/SNI worlds such as Super Mario World.
 ROM_START = 0x000000
@@ -49,6 +47,22 @@ BOSS_FLAG_TO_LOCATION: Dict[int, str] = {
     0x80: names.spring_man_defeated,
 }
 
+BOSS_FLAG_TO_ITEM_LOCATION: Dict[int, str] = {
+    0x01: names.freeze_man_defeated_item,
+    0x02: names.cloud_man_defeated_item,
+    0x04: names.junk_man_defeated_item,
+    0x08: names.turbo_man_defeated_item,
+    0x10: names.slash_man_defeated_item,
+    0x20: names.shade_man_defeated_item,
+    0x40: names.burst_man_defeated_item,
+    0x80: names.spring_man_defeated_item,
+}
+
+PROTO_FLAG_TO_LOCATION: Dict[int, str] = {
+    0x01: names.proto_man_cloud_man_loc,
+    0x02: names.proto_man_turbo_man_loc,
+}
+
 
 class MM7SNIClient(SNIClient):
     game = "Mega Man 7"
@@ -57,7 +71,6 @@ class MM7SNIClient(SNIClient):
     async def validate_rom(self, ctx) -> bool:
         # Temporary prototype auth token.
         # Later this should be a real AP ROM marker read from the patched ROM.
-        print("MM7 validate_rom called")
         ctx.game = self.game
         ctx.items_handling = 0b111
         ctx.want_slot_data = True
@@ -80,8 +93,33 @@ class MM7SNIClient(SNIClient):
         new_checks = []
         flags = boss_flags[0]
 
-        for bit, location_name in BOSS_FLAG_TO_LOCATION.items():
+        for bit, defeated_location_name in BOSS_FLAG_TO_LOCATION.items():
             if not flags & bit:
+                continue
+
+            location_names = [
+                defeated_location_name,
+                BOSS_FLAG_TO_ITEM_LOCATION[bit],
+            ]
+
+            for location_name in location_names:
+                location_id = location_name_to_id.get(location_name)
+                if location_id is None:
+                    snes_logger.warning("MM7 client missing location id for %s", location_name)
+                    continue
+
+                if location_id not in ctx.locations_checked:
+                    new_checks.append(location_id)
+
+        
+        proto_flags_raw = await snes_read(ctx, AP_BOSS_FLAGS_2, 1)
+        if proto_flags_raw is None:
+            return
+
+        proto_flags = proto_flags_raw[0]
+
+        for bit, location_name in PROTO_FLAG_TO_LOCATION.items():
+            if not proto_flags & bit:
                 continue
 
             location_id = location_name_to_id.get(location_name)
@@ -91,6 +129,7 @@ class MM7SNIClient(SNIClient):
 
             if location_id not in ctx.locations_checked:
                 new_checks.append(location_id)
+
 
         if new_checks:
             await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])

@@ -15,10 +15,11 @@ from .items import (
     create_item as create_mm7_item,
 )
 from .locations import (
-    MM7_LOCATION_ID_BASE,
     MM7Location,
-    location_table,
+    active_locations,
+    location_name_to_id,
 )
+
 from .options import MegaMan7Options
 from .rom import MM7ProcedurePatch, MM7Settings, patch_rom
 from .client import MM7SNIClient
@@ -38,25 +39,9 @@ class MegaMan7WebWorld(WebWorld):
     ]
 
 
-# Minimal first milestone:
-# These names must match the boss flag mapping in client.py.
-#
-# ROM/client flag order:
-# 01 = Freeze, 02 = Cloud, 04 = Junk, 08 = Turbo,
-# 10 = Slash, 20 = Shade, 40 = Burst, 80 = Spring.
-MINIMAL_BOSS_LOCATIONS: List[str] = [
-    names.freeze_man_defeated,
-    names.cloud_man_defeated,
-    names.junk_man_defeated,
-    names.turbo_man_defeated,
-    names.slash_man_defeated,
-    names.shade_man_defeated,
-    names.burst_man_defeated,
-    names.spring_man_defeated,
-]
-
 # One randomized item per minimal boss location.
 MINIMAL_ITEM_POOL: List[str] = [
+    # Weapons
     names.freeze_cracker,
     names.danger_wrap,
     names.thunder_bolt,
@@ -65,6 +50,23 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.wild_coil,
     names.noise_crush,
     names.scorch_wheel,
+
+    # Rush items
+    names.rush_coil,
+    names.rush_search,
+    names.rush_jet,
+
+    # Rush plates
+    names.rush_r_plate,
+    names.rush_u_plate,
+    names.rush_s_plate,
+    names.rush_h_plate,
+
+    # One useful item
+    names.proto_shield,
+
+    names.proto_man_cloud_man,
+    names.proto_man_turbo_man,
 ]
 
 # Temporary SNI auth token.
@@ -91,18 +93,12 @@ class MegaMan7World(World):
     settings: MM7Settings
     settings_key = "mm7_options"
 
+    location_name_to_id = location_name_to_id
+
     # Use the canonical AP item ids from items.py.
     # items.py correctly adds MM7_ITEM_ID_BASE and excludes event items.
     item_name_to_id = item_name_to_id
     item_name_groups = item_groups
-
-    # Your full locations.py currently has boss defeated locations as code=None
-    # event locations. For this minimal build, we intentionally give these
-    # boss-defeat checks real AP location ids here without changing locations.py.
-    location_name_to_id = {
-        location_name: MM7_LOCATION_ID_BASE + index
-        for index, location_name in enumerate(MINIMAL_BOSS_LOCATIONS)
-    }
 
     def create_item(self, name: str) -> MM7Item:
         return create_mm7_item(name, self.player)
@@ -119,7 +115,7 @@ class MegaMan7World(World):
 
         menu.connect(main_stages)
 
-        for location_name in MINIMAL_BOSS_LOCATIONS:
+        for location_name in active_locations:
             location_code = self.location_name_to_id[location_name]
             main_stages.locations.append(
                 MM7Location(
@@ -139,14 +135,20 @@ class MegaMan7World(World):
         pass
 
     def generate_basic(self) -> None:
-        # Temporary minimal goal:
-        # receive all 8 Robot Master weapons.
-        #
-        # This is not the final game goal; it just lets generation succeed and
-        # gives you a practical smoke-test objective for the first AP loop.
+        required_weapons = [
+            names.freeze_cracker,
+            names.danger_wrap,
+            names.thunder_bolt,
+            names.junk_shield,
+            names.slash_claw,
+            names.wild_coil,
+            names.noise_crush,
+            names.scorch_wheel,
+        ]
+
         self.multiworld.completion_condition[self.player] = lambda state: all(
             state.has(item_name, self.player)
-            for item_name in MINIMAL_ITEM_POOL
+            for item_name in required_weapons
         )
 
     def get_filler_item_name(self) -> str:

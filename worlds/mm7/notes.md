@@ -1,46 +1,17 @@
 ## AP Custom Flags — $7E1800-$7E180F
-Confirmed free: $7E1800-$7E1D8F (verified unused across 2 stages)
-Claiming $7E1800-$7E180F for AP integration.
-
-$7E1800 — Boss check flags
-  bit 0 = Freeze Man checked
-  bit 1 = Burst Man checked
-  bit 2 = Cloud Man checked
-  bit 3 = Junk Man checked
-  bit 4 = Slash Man checked
-  bit 5 = Spring Man checked
-  bit 6 = Shade Man checked
-  bit 7 = Turbo Man checked
-
-$7E1801 — Wily stage check flags
-  bit 0 = Wily 1 checked
-  bit 1 = Wily 2 checked
-  bit 2 = Wily 3 checked
-  bit 3 = Wily 4 checked
-
-$7E1802 — Shop check flags
-  bit 0-5 = shop slots 1-6
-
-$7E1803 — AP item receive ID (low byte)
-$7E1804 — AP item receive ID (high byte)
-$7E1805 — AP execute flag (1 = give item, 0 = idle)
-$7E1806 — Items received index (low byte)
-$7E1807 — Items received index (high byte)
-$7E1808 — AP connection state
-$7E1809-$7E180F — Reserved for future use
+TODO:
+Stage entry / boss intro skip still uses vanilla weapon ownership.
+Need to patch stage-entry cleared check to use !AP_BOSS_FLAGS.
+Stage exit should check the medals
+Stage exit always possible option
+Items location should still spawn even if we got the item
+Also call AP_UpdateWilyUnlock when returning from the shop/stage-select init,
 
 
 ## Free ROM Space (confirmed)
 PRG ROM offsets: $007BA0-$007FFF  
 CPU addresses:   $C07BA0-$C07FFF  
 Size: ~1114 bytes — all usable
-
-Planned layout:
-$C07BA0  boss death hook        (~32 bytes)
-$C07BC0  item receive routine   (~64 bytes)
-$C07C00  shop check routine     (~32 bytes)
-$C07C20  item notification      (~48 bytes)
-$C07C50  reserved/future        (remaining ~700 bytes)
 
 
 New game
@@ -61,6 +32,17 @@ C00C06  A9 04          LDA #$04
 C00C08  85 DF          STA $DF
 C00C0A  60             RTS
 ----------------
+C00C0B  C2 20          REP #$20
+C00C0D  A2 1C          LDX #$1C
+C00C0F  9E 82 0B       STZ $0B82,X
+C00C12  CA             DEX
+C00C13  CA             DEX
+C00C14  10 F9          BPL $C00C0F
+C00C16  E2 20          SEP #$20
+C00C18  A9 80          LDA #$80
+C00C1A  8D 9B 0B       STA $0B9B <--- Rush Coil
+C00C1D  60             RTS
+----------------
 
 --------sub start--------
 C00C1E  A9 04          LDA #$04
@@ -80,6 +62,17 @@ C00C42  9C A6 0B       STZ $0BA6 <--- Bolts
 C00C45  9C A7 0B       STZ $0BA7 <--- Bolts x 256
 C00C48  60             RTS
 ----------------
+C00C49  20 68 3D       JSR $3D68
+C00C4C  9C B0 0B       STZ $0BB0
+C00C4F  AD 79 0B       LDA $0B79
+C00C52  F0 05          BEQ $C00C59
+C00C54  9C 73 0B       STZ $0B73
+C00C57  80 28          BRA $C00C81
+
+
+
+
+
 
 
 Getting a 1up
@@ -89,9 +82,9 @@ C2565B  90 18          BCC $C25675
 C2565D  AD 81 0B       LDA $0B81
 C25660  C9 09          CMP #$09
 C25662  B0 09          BCS $C2566D
-C25664  EE 81 0B       INC $0B81
+C25664  EE 81 0B       INC $0B81 <--- Lives
 C25667  A9 12          LDA #$12
-C25669  22 05 32 C0    JSL $C03205
+C25669  22 05 32 C0    JSL $C03205 <--- Sound Effect Routine
 C2566D  20 E5 56       JSR $56E5
 C25670  22 EF 08 C1    JSL $C108EF
 C25674  60             RTS
@@ -243,6 +236,139 @@ C00DD0  80 0A          BRA $C00DDC
 
 
 
+-----Stage Selection Routine-----(8 stages?)
+--------sub start--------
+C034CC  22 17 3C C0    JSL $C03C17
+C034D0  20 1C 38       JSR $381C
+C034D3  AD A6 00       LDA $00A6
+C034D6  29 50          AND #$50
+C034D8  F0 17          BEQ $C034F1
+C034DA  20 0E 38       JSR $380E
+C034DD  F0 12          BEQ $C034F1
+C034DF  8D 73 0B       STA $0B73 <--- StageID
+C034E2  A9 0A          LDA #$0A
+C034E4  85 01          STA $01
+C034E6  A0 08          LDY #$08
+C034E8  20 AB 31       JSR $31AB
+
+--------sub start--------
+C0380E  A5 07          LDA $07
+C03810  0A             ASL
+C03811  18             CLC
+C03812  65 07          ADC $07
+C03814  18             CLC
+C03815  65 04          ADC $04
+C03817  AA             TAX
+C03818  BD 24 93       LDA $9324,X
+C0381B  60             RTS
+----------------
+--------sub start--------
+C0381C  A5 04          LDA $04
+C0381E  85 1F          STA $1F
+C03820  A5 07          LDA $07
+C03822  85 21          STA $21
+C03824  AD A6 00       LDA $00A6
+C03827  89 08          BIT #$08
+C03829  F0 02          BEQ $C0382D
+C0382B  C6 07          DEC $07
+C0382D  89 04          BIT #$04
+C0382F  F0 02          BEQ $C03833
+C03831  E6 07          INC $07
+C03833  89 02          BIT #$02
+C03835  F0 02          BEQ $C03839
+C03837  C6 04          DEC $04
+C03839  89 01          BIT #$01
+C0383B  F0 02          BEQ $C0383F
+C0383D  E6 04          INC $04
+C0383F  A5 04          LDA $04
+C03841  10 04          BPL $C03847
+C03843  A9 00          LDA #$00
+C03845  80 06          BRA $C0384D
+C03847  C9 03          CMP #$03
+C03849  90 04          BCC $C0384F
+C0384B  A9 02          LDA #$02
+C0384D  85 04          STA $04
+C0384F  A5 07          LDA $07
+C03851  10 04          BPL $C03857
+C03853  A9 00          LDA #$00
+C03855  80 06          BRA $C0385D
+C03857  C9 03          CMP #$03
+C03859  90 04          BCC $C0385F
+C0385B  A9 02          LDA #$02
+C0385D  85 07          STA $07
+C0385F  A5 04          LDA $04
+C03861  C5 1F          CMP $1F
+C03863  D0 06          BNE $C0386B
+C03865  A5 07          LDA $07
+C03867  C5 21          CMP $21
+C03869  F0 06          BEQ $C03871
+C0386B  A9 14          LDA #$14
+C0386D  22 05 32 C0    JSL $C03205
+C03871  A6 04          LDX $04
+C03873  BD 1E 93       LDA $931E,X
+C03876  85 05          STA $05
+C03878  A6 07          LDX $07
+C0387A  BD 21 93       LDA $9321,X
+C0387D  85 08          STA $08
+C0387F  60             RTS
+----------------
+
+
+
+
+
+
+
+
+Spawn Boss Routine?
+                     --------sub start--------
+C286E0  22 39 0C C3    JSL $C30C39
+C286E4  A5 34          LDA $34
+C286E6  04 14          TSB $14
+C286E8  A6 01          LDX $01
+C286EA  FC B9 87       JSR ($87B9,X)
+C286ED  AD 73 0B       LDA $0B73
+C286F0  C9 09          CMP #$09
+C286F2  B0 08          BCS $C286FC
+C286F4  0A             ASL
+C286F5  AA             TAX
+C286F6  BD 83 0B       LDA $0B83,X
+C286F9  10 01          BPL $C286FC
+C286FB  60             RTS
+                     ----------------
+C286FC  A5 01          LDA $01
+C286FE  C9 06          CMP #$06
+C28700  D0 01          BNE $C28703
+C28702  60             RTS
+                     ----------------
+
+
+
+                     --------sub start--------
+C30353  A9 09          LDA #$09
+C30355  CD 73 0B       CMP $0B73
+C30358  90 16          BCC $C30370
+C3035A  AD 73 0B       LDA $0B73
+C3035D  0A             ASL
+C3035E  AA             TAX
+C3035F  BD 83 0B       LDA $0B83,X
+C30362  18             CLC
+C30363  10 0B          BPL $C30370
+C30365  A9 10          LDA #$10
+C30367  22 4E 0E C3    JSL $C30E4E
+C3036B  22 EF 08 C1    JSL $C108EF
+C3036F  38             SEC
+C30370  6B             RTL
+                     ----------------
+
+
+
+
+
+
+
+
+
 
 
 
@@ -285,3 +411,19 @@ mega_bolt_shade_man_loc: shade_man_access && rush_search
 mega_bolt_turbo_man_loc: turbo_man_access && rush_search
 mega_bolt_junk_man_loc: junk_man_access && freeze_cracker && rush_search
 mega_health_capsule_loc: spring_man_access && rush_search
+
+
+
+
+
+
+
+cp Megaman\ VII\ \(USA\).sfc build/mm7_clean.sfc &&
+cp Megaman\ VII\ \(USA\).sfc build/mm7_patched.sfc &&
+python src/patch_mm7base.py
+
+zip -r ../mm7.apworld mm7   -x "mm7/__pycache__/*"   -x "mm7/*.pyc"   -x "mm7/build/*"
+
+python Generate.py --player_files Players
+
+python Patch.py output/
