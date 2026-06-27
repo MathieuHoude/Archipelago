@@ -57,14 +57,14 @@ location_table: Dict[str, MM7LocationData] = {
     # ========================================================
     # Main boss defeats — locked medal event locations
     # ========================================================
-    names.freeze_man_defeated: MM7LocationData(0x00, FREEZE_MAN),
-    names.cloud_man_defeated:  MM7LocationData(0x01, CLOUD_MAN),
-    names.junk_man_defeated:   MM7LocationData(0x02, JUNK_MAN),
-    names.turbo_man_defeated:  MM7LocationData(0x03, TURBO_MAN),
-    names.slash_man_defeated:  MM7LocationData(0x04, SLASH_MAN),
-    names.shade_man_defeated:  MM7LocationData(0x05, SHADE_MAN),
-    names.burst_man_defeated:  MM7LocationData(0x06, BURST_MAN),
-    names.spring_man_defeated: MM7LocationData(0x07, SPRING_MAN),
+    names.freeze_man_defeated: MM7LocationData(None, FREEZE_MAN),
+    names.cloud_man_defeated:  MM7LocationData(None, CLOUD_MAN),
+    names.junk_man_defeated:   MM7LocationData(None, JUNK_MAN),
+    names.turbo_man_defeated:  MM7LocationData(None, TURBO_MAN),
+    names.slash_man_defeated:  MM7LocationData(None, SLASH_MAN),
+    names.shade_man_defeated:  MM7LocationData(None, SHADE_MAN),
+    names.burst_man_defeated:  MM7LocationData(None, BURST_MAN),
+    names.spring_man_defeated: MM7LocationData(None, SPRING_MAN),
 
     # ========================================================
     # Main boss item checks — randomized item locations
@@ -172,11 +172,13 @@ active_locations = (
     minimal_boss_locations
     + boss_item_locations
     + proto_man_check_locations
+    + [names.wily_capsule]
 )
 
 location_name_to_id: Dict[str, int] = {
-    location_name: MM7_LOCATION_ID_BASE + index
-    for index, location_name in enumerate(active_locations)
+    location_name: MM7_LOCATION_ID_BASE + data.code
+    for location_name, data in location_table.items()
+    if data.code is not None
 }
 
 location_id_to_name: Dict[int, str] = {
@@ -201,6 +203,15 @@ regions: Set[str] = {
 # Values are item names from items.py that should be created as locked events.
 
 event_location_to_item: Dict[str, str] = {
+    names.freeze_man_defeated: names.freeze_man_defeated,
+    names.cloud_man_defeated: names.cloud_man_defeated,
+    names.junk_man_defeated: names.junk_man_defeated,
+    names.turbo_man_defeated: names.turbo_man_defeated,
+    names.slash_man_defeated: names.slash_man_defeated,
+    names.shade_man_defeated: names.shade_man_defeated,
+    names.burst_man_defeated: names.burst_man_defeated,
+    names.spring_man_defeated: names.spring_man_defeated,
+
     names.wily_capsule: names.wily_capsule,
 }
 

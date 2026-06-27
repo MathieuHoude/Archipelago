@@ -4,7 +4,7 @@ import base64
 import os
 from typing import Any, Dict, List
 
-from BaseClasses import Region, Tutorial
+from BaseClasses import ItemClassification, Region, Tutorial
 from worlds.AutoWorld import WebWorld, World
 
 from . import names
@@ -14,9 +14,11 @@ from .items import (
     item_name_to_id,
     create_item as create_mm7_item,
 )
+
 from .locations import (
     MM7Location,
     active_locations,
+    event_location_to_item,
     location_name_to_id,
 )
 
@@ -51,20 +53,7 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.noise_crush,
     names.scorch_wheel,
 
-    # Rush items
-    names.rush_coil,
-    names.rush_search,
-    names.rush_jet,
-
-    # Rush plates
-    names.rush_r_plate,
-    names.rush_u_plate,
-    names.rush_s_plate,
-    names.rush_h_plate,
-
-    # One useful item
-    names.proto_shield,
-
+    # Randomized Proto Man clue items
     names.proto_man_cloud_man,
     names.proto_man_turbo_man,
 ]
@@ -103,6 +92,9 @@ class MegaMan7World(World):
     def create_item(self, name: str) -> MM7Item:
         return create_mm7_item(name, self.player)
 
+    def create_event(self, name: str) -> MM7Item:
+        return MM7Item(name, ItemClassification.progression, None, self.player)
+
     def create_items(self) -> None:
         self.multiworld.itempool += [
             self.create_item(item_name)
@@ -116,15 +108,20 @@ class MegaMan7World(World):
         menu.connect(main_stages)
 
         for location_name in active_locations:
-            location_code = self.location_name_to_id[location_name]
-            main_stages.locations.append(
-                MM7Location(
-                    self.player,
-                    location_name,
-                    location_code,
-                    main_stages,
-                )
+            location_code = self.location_name_to_id.get(location_name)
+
+            location = MM7Location(
+                self.player,
+                location_name,
+                location_code,
+                main_stages,
             )
+
+            event_item_name = event_location_to_item.get(location_name)
+            if event_item_name is not None:
+                location.place_locked_item(self.create_event(event_item_name))
+
+            main_stages.locations.append(location)
 
         self.multiworld.regions += [menu, main_stages]
 
@@ -135,20 +132,9 @@ class MegaMan7World(World):
         pass
 
     def generate_basic(self) -> None:
-        required_weapons = [
-            names.freeze_cracker,
-            names.danger_wrap,
-            names.thunder_bolt,
-            names.junk_shield,
-            names.slash_claw,
-            names.wild_coil,
-            names.noise_crush,
-            names.scorch_wheel,
-        ]
-
-        self.multiworld.completion_condition[self.player] = lambda state: all(
-            state.has(item_name, self.player)
-            for item_name in required_weapons
+        self.multiworld.completion_condition[self.player] = lambda state: state.has(
+            names.wily_capsule,
+            self.player,
         )
 
     def get_filler_item_name(self) -> str:

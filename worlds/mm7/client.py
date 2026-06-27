@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Dict, Optional
 
-from NetUtils import color
+from NetUtils import ClientStatus, color
 from worlds.AutoSNIClient import SNIClient
 
 from . import names
@@ -32,6 +32,7 @@ AP_EXECUTE_FLAG = WRAM_START + 0x1FA6
 AP_RECV_INDEX_LO = WRAM_START + 0x1FA7
 AP_RECV_INDEX_HI = WRAM_START + 0x1FA8
 AP_CONNECTION = WRAM_START + 0x1FA9
+AP_GOAL_FLAGS = WRAM_START + 0x1FAC
 
 # Boss medal/check flag order confirmed from testing:
 # 01 = Freeze, 02 = Cloud, 04 = Junk, 08 = Turbo,
@@ -92,24 +93,23 @@ class MM7SNIClient(SNIClient):
 
         new_checks = []
         flags = boss_flags[0]
+        goal_reached = False
 
-        for bit, defeated_location_name in BOSS_FLAG_TO_LOCATION.items():
+        goal_flags = await snes_read(ctx, AP_GOAL_FLAGS, 1)
+        if goal_flags and goal_flags[0] & 0x01:
+            goal_reached = True
+
+        for bit, location_name in BOSS_FLAG_TO_ITEM_LOCATION.items():
             if not flags & bit:
                 continue
 
-            location_names = [
-                defeated_location_name,
-                BOSS_FLAG_TO_ITEM_LOCATION[bit],
-            ]
+            location_id = location_name_to_id.get(location_name)
+            if location_id is None:
+                snes_logger.warning("MM7 client missing location id for %s", location_name)
+                continue
 
-            for location_name in location_names:
-                location_id = location_name_to_id.get(location_name)
-                if location_id is None:
-                    snes_logger.warning("MM7 client missing location id for %s", location_name)
-                    continue
-
-                if location_id not in ctx.locations_checked:
-                    new_checks.append(location_id)
+            if location_id not in ctx.locations_checked:
+                new_checks.append(location_id)
 
         
         proto_flags_raw = await snes_read(ctx, AP_BOSS_FLAGS_2, 1)
@@ -135,6 +135,10 @@ class MM7SNIClient(SNIClient):
             await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])
             for location_id in new_checks:
                 ctx.locations_checked.add(location_id)
+
+        if goal_reached and not ctx.finished_game:
+            await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
+            ctx.finished_game = True
 
         # 2. Deliver received AP items to the ROM-side AP_CheckItemReceive mailbox.
         execute_flag = await snes_read(ctx, AP_EXECUTE_FLAG, 1)
@@ -181,7 +185,3 @@ class MM7SNIClient(SNIClient):
         snes_buffered_write(ctx, AP_ITEM_ID_HI, bytes([(receive_id >> 8) & 0xFF]))
         snes_buffered_write(ctx, AP_EXECUTE_FLAG, bytes([0x01]))
         await snes_flush_writes(ctx)
-
-        # Optional future goal handling:
-        # Once Wily Capsule writes a ROM flag, read it here and send:
-        # await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])

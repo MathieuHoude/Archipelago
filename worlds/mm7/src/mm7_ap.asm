@@ -19,11 +19,13 @@ hirom
 !AP_RECV_INDEX_HI  = $7E1FA8
 !AP_CONNECTION     = $7E1FA9
 !AP_RUNTIME_START  = $7E1FA1
-!MM7_PROTO_FLAGS    = $7E0B78
+!MM7_PROTO_FLAGS   = $7E0B78
 
-!AP_PROTO_CHECKS    = $7E1FA2 ; already AP_BOSS_FLAGS_2
-!AP_PROTO_ITEMS     = $7E1FAA ; AP-owned randomized Proto clues
-!AP_TEMP            = $7E1FAB
+!AP_PROTO_CHECKS   = $7E1FA2 ; already AP_BOSS_FLAGS_2
+!AP_PROTO_ITEMS    = $7E1FAA ; AP-owned randomized Proto clues
+!AP_TEMP           = $7E1FAB
+!AP_GOAL_FLAGS     = $7E1FAC
+!AP_PICKUP_FLAGS   = $7E1FB0
 ; ============================================
 ; Flags to have all 8 stages at once
 ; ============================================
@@ -627,3 +629,28 @@ org $C07F90
     .all_defeated:
         PLP
         JML $C00DEC
+
+org $D8DAB4
+    JSL AP_WilyCapsuleDefeatedHook
+    NOP
+
+org $C07FB0
+    AP_WilyCapsuleDefeatedHook:
+        PHP
+        SEP #$20
+
+        ; Preserve replaced vanilla behavior: INC $0BCA
+        LDA.l $7E0BCA
+        INC
+        STA.l $7E0BCA
+
+        ; Mark AP goal complete.
+        LDA.l !AP_GOAL_FLAGS
+        ORA #$01
+        STA.l !AP_GOAL_FLAGS
+
+        ; Preserve replaced vanilla behavior: LDA #$08
+        LDA #$08
+
+        PLP
+        RTL
