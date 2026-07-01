@@ -25,6 +25,7 @@ class MM7Location(Location):
 # either use this region set directly or mirror it with explicit Region objects.
 
 MENU = "Menu"
+INTRO_STAGE = "Intro Stage"
 STAGE_SELECT = "Stage Select"
 SHOP = "Shop"
 BURST_MAN = "Burst Man"
@@ -87,7 +88,7 @@ location_table: Dict[str, MM7LocationData] = {
     names.hannya_ned_defeated: MM7LocationData(0x13, WILY_3),
 
     # ========================================================
-    # Proto Man — locked clue events and randomized shield check
+    # Proto Man — randomized clue meetings and shield check
     # ========================================================
     names.proto_man_cloud_man_loc: MM7LocationData(0x14, CLOUD_MAN),
     names.proto_man_turbo_man_loc: MM7LocationData(0x15, TURBO_MAN),
@@ -116,7 +117,7 @@ location_table: Dict[str, MM7LocationData] = {
     # ========================================================
     # Rush item pickups
     # ========================================================
-    names.rush_coil_loc:   MM7LocationData(0x29, BURST_MAN),
+    names.rush_coil_loc:   MM7LocationData(0x29, INTRO_STAGE),
     names.rush_search_loc: MM7LocationData(0x2A, FREEZE_MAN),
     names.rush_jet_loc:    MM7LocationData(0x2B, JUNK_MAN),
 
@@ -168,10 +169,20 @@ proto_man_check_locations = [
     names.proto_man_turbo_man_loc,
 ]
 
+rush_check_locations = [
+    names.rush_search_loc,
+    names.rush_jet_loc,
+    names.rush_r_plate_loc,
+    names.rush_u_plate_loc,
+    names.rush_s_plate_loc,
+    names.rush_h_plate_loc,
+]
+
 active_locations = (
     minimal_boss_locations
     + boss_item_locations
     + proto_man_check_locations
+    + rush_check_locations
     + [names.wily_capsule]
 )
 

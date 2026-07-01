@@ -56,6 +56,13 @@ MINIMAL_ITEM_POOL: List[str] = [
     # Randomized Proto Man clue items
     names.proto_man_cloud_man,
     names.proto_man_turbo_man,
+
+    names.rush_search,
+    names.rush_jet,
+    names.rush_r_plate,
+    names.rush_u_plate,
+    names.rush_s_plate,
+    names.rush_h_plate,
 ]
 
 # Temporary SNI auth token.

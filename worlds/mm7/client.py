@@ -33,6 +33,7 @@ AP_RECV_INDEX_LO = WRAM_START + 0x1FA7
 AP_RECV_INDEX_HI = WRAM_START + 0x1FA8
 AP_CONNECTION = WRAM_START + 0x1FA9
 AP_GOAL_FLAGS = WRAM_START + 0x1FAC
+AP_PICKUP_FLAGS = WRAM_START + 0x1FB0
 
 # Boss medal/check flag order confirmed from testing:
 # 01 = Freeze, 02 = Cloud, 04 = Junk, 08 = Turbo,
@@ -64,6 +65,14 @@ PROTO_FLAG_TO_LOCATION: Dict[int, str] = {
     0x02: names.proto_man_turbo_man_loc,
 }
 
+PICKUP_FLAG_TO_LOCATION: Dict[int, str] = {
+    0x01: names.rush_search_loc,
+    0x02: names.rush_r_plate_loc,
+    0x04: names.rush_u_plate_loc,
+    0x08: names.rush_s_plate_loc,
+    0x10: names.rush_h_plate_loc,
+    0x20: names.rush_jet_loc,
+}
 
 class MM7SNIClient(SNIClient):
     game = "Mega Man 7"
@@ -130,6 +139,23 @@ class MM7SNIClient(SNIClient):
             if location_id not in ctx.locations_checked:
                 new_checks.append(location_id)
 
+        pickup_flags_raw = await snes_read(ctx, AP_PICKUP_FLAGS, 1)
+        if pickup_flags_raw is None:
+            return
+
+        pickup_flags = pickup_flags_raw[0]
+
+        for bit, location_name in PICKUP_FLAG_TO_LOCATION.items():
+            if not pickup_flags & bit:
+                continue
+
+            location_id = location_name_to_id.get(location_name)
+            if location_id is None:
+                snes_logger.warning("MM7 client missing location id for %s", location_name)
+                continue
+
+            if location_id not in ctx.locations_checked:
+                new_checks.append(location_id)
 
         if new_checks:
             await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])

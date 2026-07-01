@@ -26,8 +26,9 @@ hirom
 !AP_TEMP           = $7E1FAB
 !AP_GOAL_FLAGS     = $7E1FAC
 !AP_PICKUP_FLAGS   = $7E1FB0
+
 ; ============================================
-; Flags to have all 8 stages at once
+; New-game setup
 ; ============================================
 
 org $C00C22
@@ -80,11 +81,297 @@ org $C000AF
 org $C00DCB
     LDA #$80
     STA $0B83,X
+
 ; ============================================
-; Free ROM space routines
+; Stage select medal hook
+; Original:
+;   C038CC BD 83 0B    LDA $0B83,X
+;   C038CF 10 05       BPL $C038D6
+;   C038D1 DA          PHX
+;   C038D2 20 02 39    JSR $3902
+;   C038D5 FA          PLX
 ; ============================================
 
-org $C07BA0
+org $C038CC
+    JSL AP_StageSelectMedalHook
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Boss spawn defeated-state hook
+; ============================================
+
+org $C3035F
+    JSL AP_LoadBossDefeatedState
+
+; ============================================
+; Proto Man Cloud Man meeting hook
+; ============================================
+
+org $C2C4B3
+    JML AP_ProtoCloudMeetingGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; AP-only boss reward gate.
+; Always records the AP boss flag and skips vanilla weapon-get.
+; ============================================
+
+org $C00DBC
+    JML AP_StageExitAPOnlyBossGate
+    NOP
+
+; ============================================
+; Wily unlock gate.
+; Replaces vanilla all-weapons check with AP boss flags check.
+; ============================================
+
+org $C00DE1
+    JML AP_WilyUnlockGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Wily Capsule defeated goal hook
+; Original:
+;   D8DAB4 EE CA 0B    INC $0BCA
+;   D8DAB7 A9 08       LDA #$08
+; ============================================
+
+org $D8DAB4
+    JSL AP_WilyCapsuleDefeatedHook
+    NOP
+
+; ============================================
+; Rush Search pickup AP location hook
+; Original:
+;   D8D128 A9 9C       LDA #$9C
+;   D8D12A 8D 97 0B    STA $0B97
+;   D8D12D 4C E7 D1    JMP $D1E7
+; ============================================
+
+org $D8D128
+    JML AP_RushSearchPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Rush plate pickup AP location hooks
+; Original plate grant handlers are 11 bytes each:
+;   LDA #$xx
+;   TSB $0BA4
+;   JSR $D1D0
+;   JMP $D1E7
+; ============================================
+
+org $D8D0D2
+    JML AP_RushRPlatePickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D0E8
+    JML AP_RushUPlatePickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D0FE
+    JML AP_RushSPlatePickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D114
+    JML AP_RushHPlatePickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Rush plate spawn/check AP location hooks
+; ============================================
+
+org $D8D0C7
+    JML AP_RushRPlateSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D0DD
+    JML AP_RushUPlateSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D0F3
+    JML AP_RushSPlateSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D109
+    JML AP_RushHPlateSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+
+; ============================================
+; Rush Jet pickup AP location hook
+; Original:
+;   D8D139 A9 9C       LDA #$9C
+;   D8D13B 8D 99 0B    STA $0B99
+;   D8D13E 4C E7 D1    JMP $D1E7
+; ============================================
+
+org $D8D139
+    JML AP_RushJetPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Freeze Man presence gate.
+; Original block:
+;   C286ED AD 73 0B    LDA $0B73
+;   C286F0 C9 09       CMP #$09
+;   C286F2 B0 08       BCS $C286FC
+;   C286F4 0A          ASL
+;   C286F5 AA          TAX
+;   C286F6 BD 83 0B    LDA $0B83,X
+;   C286F9 10 01       BPL $C286FC
+;   C286FB 60          RTS
+; ============================================
+
+org $C286ED
+    JML AP_FreezeManPresenceGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Small C0-bank helper routines
+;
+; These stay in bank C0 because they call vanilla RTS routines using JSR.
+; Do not move them to bank D8 without adding wrappers.
+; ============================================
+
+org $C07C00
+
+AP_MainLoopHook:
+    JSR $315A
+    INC $00D1
+    JSL AP_CheckItemReceive
+    RTL
+
+org $C07EC0
+
+AP_StageSelectMedalHook:
+    PHP
+    SEP #$30
+    PHX
+
+    ; X is one of $10,$0E,$0C,$0A,$08,$06,$04,$02.
+    ; Convert weapon offset into table index: X / 2.
+    TXA
+    LSR
+    TAX
+
+    LDA.l AP_StageSelectBitMaskTable,x
+    AND.l !AP_BOSS_FLAGS
+    BEQ .not_cleared
+
+.cleared:
+    PLX
+    PLP
+
+    ; Original cleared behavior:
+    ; PHX
+    ; JSR $3902
+    ; PLX
+    PHX
+    JSR $3902
+    PLX
+    RTL
+
+.not_cleared:
+    PLX
+    PLP
+    RTL
+
+; ============================================
+; AP custom routines block
+;
+; Confirmed free space:
+;   file offset 0x18EF15
+;   CPU address $D8EF15
+;   size 0xFEB
+;   fill $FF
+;
+; Keep all general AP routines in this block.
+; ============================================
+
+org $D8EF15
 
 AP_SetStartingTanks:
     LDA #$01
@@ -129,18 +416,6 @@ AP_SkipIntroStage:
     LDA #$01
     STA $0B73
     RTS
-
-; ============================================
-; Main loop hook body
-; ============================================
-
-org $C07C00
-
-AP_MainLoopHook:
-    JSR $315A
-    INC $00D1
-    JSL AP_CheckItemReceive
-    RTL
 
 ; ============================================
 ; AP item receive dispatcher
@@ -424,12 +699,8 @@ AP_AddLargeBolts:
     RTS
 
 ; ============================================
-; Boss defeated/check flag hook routine
-; Kept away from the vanilla code area.
+; Boss defeated/check flag tables and hooks
 ; ============================================
-
-org $C07E80
-
 
 AP_BossBitMaskTable:
     db $00 ; index 0 unused / unknown
@@ -442,61 +713,6 @@ AP_BossBitMaskTable:
     db $40 ; index 7 = Burst Man
     db $80 ; index 8 = Spring Man
 
-
-
-
-
-; Original:
-; C038CC  BD 83 0B       LDA $0B83,X
-; C038CF  10 05          BPL $C038D6
-; C038D1  DA             PHX
-; C038D2  20 02 39       JSR $3902
-; C038D5  FA             PLX
-
-org $C038CC
-    JSL AP_StageSelectMedalHook
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-
-org $C07EC0
-
-AP_StageSelectMedalHook:
-    PHP
-    SEP #$30
-    PHX
-
-    ; X is one of $10,$0E,$0C,$0A,$08,$06,$04,$02.
-    ; Convert weapon offset into table index: X / 2.
-    TXA
-    LSR
-    TAX
-
-    LDA.l AP_StageSelectBitMaskTable,x
-    AND.l !AP_BOSS_FLAGS
-    BEQ .not_cleared
-
-.cleared:
-    PLX
-    PLP
-
-    ; Original cleared behavior:
-    ; PHX
-    ; JSR $3902
-    ; PLX
-    PHX
-    JSR $3902
-    PLX
-    RTL
-
-.not_cleared:
-    PLX
-    PLP
-    RTL
-
 AP_StageSelectBitMaskTable:
     db $00 ; index 0 unused
     db $01 ; X=$02
@@ -508,79 +724,54 @@ AP_StageSelectBitMaskTable:
     db $40 ; X=$0E
     db $80 ; X=$10
 
-org $C3035F
-    JSL AP_LoadBossDefeatedState
+AP_LoadBossDefeatedState:
+    PHP
+    SEP #$30
+    PHX
 
-org $C07F00
-    AP_LoadBossDefeatedState:
-        PHP
-        SEP #$30
-        PHX
+    ; X is stage_id * 2 here.
+    TXA
+    LSR
+    TAX
 
-        ; X is stage_id * 2 here.
-        TXA
-        LSR
-        TAX
+    LDA.l AP_BossBitMaskTable,x
+    AND.l !AP_BOSS_FLAGS
+    BEQ .not_defeated
 
-        LDA.l AP_BossBitMaskTable,x
-        AND.l !AP_BOSS_FLAGS
-        BEQ .not_defeated
+.defeated:
+    PLX
+    PLP
+    SEC
+    LDA #$80
+    RTL
 
-    .defeated:
-        PLX
-        PLP
-        SEC
-        LDA #$80
-        RTL
+.not_defeated:
+    PLX
+    PLP
+    CLC
+    LDA #$00
+    RTL
 
-    .not_defeated:
-        PLX
-        PLP
-        CLC
-        LDA #$00
-        RTL
+AP_ProtoCloudMeetingGate:
+    PHP
+    SEP #$20
 
-org $C2C4B3
-    JML AP_ProtoCloudMeetingGate
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
+    ; If AP already recorded this Proto Man meeting check, skip it.
+    LDA.l !AP_PROTO_CHECKS
+    AND #$01
+    BNE .Skip
 
-org $C07F30
-    AP_ProtoCloudMeetingGate:
-        PHP
-        SEP #$20
+    ; Otherwise record the AP check and continue to vanilla meeting/event path.
+    LDA.l !AP_PROTO_CHECKS
+    ORA #$01
+    STA.l !AP_PROTO_CHECKS
 
-        ; If AP already recorded this Proto Man meeting check, skip it.
-        LDA.l !AP_PROTO_CHECKS
-        AND #$01
-        BNE .Skip
+    PLP
+    JML $C2C4ED
 
-        ; Otherwise record the AP check and continue to vanilla meeting/event path.
-        LDA.l !AP_PROTO_CHECKS
-        ORA #$01
-        STA.l !AP_PROTO_CHECKS
-
-        PLP
-        JML $C2C4ED
-
-    .Skip:
-        PLP
-        JML $C2C4BF
-
-
-; AP-only boss reward gate.
-; Always records the AP boss flag and skips vanilla weapon-get.
-org $C00DBC
-    JML AP_StageExitAPOnlyBossGate
-    NOP
-
-org $C07F60
+.Skip:
+    PLP
+    JML $C2C4BF
 
 AP_StageExitAPOnlyBossGate:
     PHP
@@ -603,54 +794,222 @@ AP_StageExitAPOnlyBossGate:
     ; Skip vanilla weapon-get / boss weapon grant.
     JML $C00DDC
 
-org $C00DE1
-    JML AP_WilyUnlockGate
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
+AP_WilyUnlockGate:
+    PHP
+    SEP #$20
 
-org $C07F90
-    AP_WilyUnlockGate:
-        PHP
-        SEP #$20
+    LDA.l !AP_BOSS_FLAGS
+    CMP #$FF
+    BEQ .all_defeated
 
-        LDA.l !AP_BOSS_FLAGS
-        CMP #$FF
-        BEQ .all_defeated
+.not_all_defeated:
+    PLP
+    JML $C00E08
 
-    .not_all_defeated:
-        PLP
-        JML $C00E08
+.all_defeated:
+    PLP
+    JML $C00DEC
 
-    .all_defeated:
-        PLP
-        JML $C00DEC
+AP_WilyCapsuleDefeatedHook:
+    PHP
+    SEP #$20
 
-org $D8DAB4
-    JSL AP_WilyCapsuleDefeatedHook
-    NOP
+    ; Preserve replaced vanilla behavior: INC $0BCA
+    LDA.l $7E0BCA
+    INC
+    STA.l $7E0BCA
 
-org $C07FB0
-    AP_WilyCapsuleDefeatedHook:
-        PHP
-        SEP #$20
+    ; Mark AP goal complete.
+    LDA.l !AP_GOAL_FLAGS
+    ORA #$01
+    STA.l !AP_GOAL_FLAGS
 
-        ; Preserve replaced vanilla behavior: INC $0BCA
-        LDA.l $7E0BCA
-        INC
-        STA.l $7E0BCA
+    ; Preserve replaced vanilla behavior: LDA #$08
+    LDA #$08
 
-        ; Mark AP goal complete.
-        LDA.l !AP_GOAL_FLAGS
-        ORA #$01
-        STA.l !AP_GOAL_FLAGS
+    PLP
+    RTL
 
-        ; Preserve replaced vanilla behavior: LDA #$08
-        LDA #$08
+AP_RushSearchPickupCheck:
+    PHP
+    SEP #$20
 
-        PLP
-        RTL
+    ; Mark Rush Search pickup location checked.
+    ; Bit 0 of AP_PICKUP_FLAGS.
+    LDA.l !AP_PICKUP_FLAGS
+    ORA #$01
+    STA.l !AP_PICKUP_FLAGS
+
+    PLP
+
+    ; Skip vanilla Rush Search grant and continue normal pickup cleanup.
+    JML $D8D1E7
+
+AP_RushJetPickupCheck:
+    PHP
+    SEP #$20
+
+    ; Mark Rush Jet pickup location checked.
+    ; Bit 5 of AP_PICKUP_FLAGS.
+    LDA.l !AP_PICKUP_FLAGS
+    ORA #$20
+    STA.l !AP_PICKUP_FLAGS
+
+    PLP
+
+    ; Skip vanilla Rush Jet grant and continue normal pickup cleanup.
+    JML $D8D1E7
+
+AP_FreezeManPresenceGate:
+    PHP
+    SEP #$30
+    PHX
+
+    LDA.l $7E0B73
+    CMP #$09
+    BCS .continue
+
+    TAX
+
+    LDA.l AP_BossBitMaskTable,x
+    AND.l !AP_BOSS_FLAGS
+    BNE .skip_object
+
+.continue:
+    PLX
+    PLP
+    JML $C286FC
+
+.skip_object:
+    PLX
+    PLP
+    JML $C286FB
+
+AP_RushRPlatePickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    ORA #$02
+    STA.l !AP_PICKUP_FLAGS
+
+    PLP
+
+    ; Preserve vanilla plate pickup side effect.
+    JSR $D1D0
+
+    ; Skip vanilla plate grant and continue normal pickup cleanup.
+    JML $D8D1E7
+
+AP_RushUPlatePickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    ORA #$04
+    STA.l !AP_PICKUP_FLAGS
+
+    PLP
+
+    ; Preserve vanilla plate pickup side effect.
+    JSR $D1D0
+
+    ; Skip vanilla plate grant and continue normal pickup cleanup.
+    JML $D8D1E7
+
+AP_RushSPlatePickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    ORA #$08
+    STA.l !AP_PICKUP_FLAGS
+
+    PLP
+
+    ; Preserve vanilla plate pickup side effect.
+    JSR $D1D0
+
+    ; Skip vanilla plate grant and continue normal pickup cleanup.
+    JML $D8D1E7
+
+AP_RushHPlatePickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    ORA #$10
+    STA.l !AP_PICKUP_FLAGS
+
+    PLP
+
+    ; Preserve vanilla plate pickup side effect.
+    JSR $D1D0
+
+    ; Skip vanilla plate grant and continue normal pickup cleanup.
+    JML $D8D1E7
+
+AP_RushRPlateSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    AND #$02
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+
+AP_RushUPlateSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    AND #$04
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+
+AP_RushSPlateSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    AND #$08
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+
+AP_RushHPlateSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_PICKUP_FLAGS
+    AND #$10
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+assert pc() <= $D8FF00
