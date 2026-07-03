@@ -179,11 +179,17 @@ def set_rules(world: World, multiworld: MultiWorld, player: int) -> None:
 
     multiworld.get_location(names.hyper_rocket_buster_loc, player).access_rule = \
         lambda state: (
-            (state.has(names.turbo_man_access, player) and
-             has_super_adapter(state, player) and
-             state.has(names.rush_search, player)) or
-            (state.has(names.shop_access, player) and
-             state.has(names.hyper_bolt, player))
+            (
+                state.has(names.turbo_man_access, player) 
+                and
+                state.has(names.rush_search, player)
+            ) 
+            or
+            (
+                state.has(names.shop_access, player) 
+                and
+                state.has(names.hyper_bolt, player)
+            )
         )
 
     multiworld.get_location(names.energy_balancer_loc, player).access_rule = \

@@ -371,6 +371,109 @@ org $C286ED
     NOP
 
 ; ============================================
+; Exit Unit spawn/check AP location hook
+; $0BA4 bit $20 -> AP_ITEM_FLAGS bit $20
+; ============================================
+
+org $D8D063
+    JML AP_ExitUnitSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D06E
+    JML AP_ExitUnitPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Energy Balancer spawn/check AP location hook
+; $0BA4 bit $80 -> AP_ITEM_FLAGS bit $80
+; ============================================
+
+org $D8D076
+    JML AP_EnergyBalancerSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D081
+    JML AP_EnergyBalancerPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Hyper Bolt spawn/check AP location hook
+; $0BA4 bit $10 -> AP_ITEM_FLAGS bit $10
+; ============================================
+
+org $D8D0A1
+    JML AP_HyperBoltSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D0AC
+    JML AP_HyperBoltPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
+; Hyper Rocket Buster spawn/check AP location hook
+; $0BA4 bit $40 -> AP_ITEM_FLAGS bit $40
+; ============================================
+
+org $D8D0B4
+    JML AP_HyperRocketBusterSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D0BF
+    JML AP_HyperRocketBusterPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C14D98
+    JML AP_HyperRocketBusterRushSearchGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+; ============================================
 ; Small C0-bank helper routines
 ;
 ; These stay in bank C0 because they call vanilla RTS routines using JSR.
@@ -1153,5 +1256,133 @@ AP_RushHPlateSpawnCheck:
 .already_checked:
     PLP
     JML $D8D1DF
+
+AP_ExitUnitPickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$20
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    JML $D8D1E7
+
+AP_EnergyBalancerPickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$80
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    JML $D8D1E7
+
+AP_HyperBoltPickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$10
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    JML $D8D1E7
+
+AP_HyperRocketBusterPickupCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$40
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    JML $D8D1E7
+
+AP_ExitUnitSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$20
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+
+AP_EnergyBalancerSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$80
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+
+AP_HyperBoltSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$10
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+
+AP_HyperRocketBusterSpawnCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$40
+    BNE .already_checked
+
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
+AP_HyperRocketBusterRushSearchGate:
+    PHP
+    SEP #$30
+
+    ; Always use the Hyper Rocket Buster Rush Search result,
+    ; even if Super Adapter is not owned.
+    LDX #$1C
+
+    ; If AP already checked Hyper Rocket Buster Location, skip it.
+    LDA.l !AP_ITEM_FLAGS
+    AND #$40
+    BNE .already_checked
+
+    ; Otherwise allow the search result.
+    PLP
+    JML $C14D88
+
+.already_checked:
+    PLP
+    JML $C14DA8
 
 assert pc() <= $D8FF00
