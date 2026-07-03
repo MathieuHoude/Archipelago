@@ -134,6 +134,21 @@ org $C2C4C8
     NOP
     NOP
 
+org $C2C4D9
+    JML AP_ProtoShieldEncounterGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C3722E
+    JML AP_ProtoShieldRewardCheck
+    NOP
+
 ; ============================================
 ; AP-only boss reward gate.
 ; Always records the AP boss flag and skips vanilla weapon-get.
@@ -837,6 +852,46 @@ AP_ProtoTurboMeetingGate:
 .skip:
     PLP
     JML $C2C4BF
+
+AP_ProtoShieldEncounterGate:
+    PHP
+    SEP #$20
+
+    ; If Proto Shield location is already checked, skip the encounter.
+    LDA.l !AP_PROTO_CHECKS
+    AND #$04
+    BNE .skip
+
+    ; Require both AP Proto clue items.
+    ; bit $01 = Cloud clue item received
+    ; bit $02 = Turbo clue item received
+    LDA.l !AP_PROTO_ITEMS
+    AND #$03
+    CMP #$03
+    BEQ .allow
+
+.skip:
+    PLP
+    JML $C2C4E5
+
+.allow:
+    PLP
+    JML $C2C4ED
+
+AP_ProtoShieldRewardCheck:
+    PHP
+    SEP #$20
+
+    ; Mark Proto Shield location checked.
+    ; bit $04 of AP_PROTO_CHECKS.
+    LDA.l !AP_PROTO_CHECKS
+    ORA #$04
+    STA.l !AP_PROTO_CHECKS
+
+    PLP
+
+    ; Skip vanilla Proto Shield grant and continue post-fight flow.
+    JML $C37233
 
 AP_StageExitAPOnlyBossGate:
     PHP

@@ -63,6 +63,7 @@ BOSS_FLAG_TO_ITEM_LOCATION: Dict[int, str] = {
 PROTO_FLAG_TO_LOCATION: Dict[int, str] = {
     0x01: names.proto_man_cloud_man_loc,
     0x02: names.proto_man_turbo_man_loc,
+    0x04: names.proto_shield_loc,
 }
 
 PICKUP_FLAG_TO_LOCATION: Dict[int, str] = {
