@@ -25,7 +25,9 @@ hirom
 !AP_PROTO_ITEMS    = $7E1FAA ; AP-owned randomized Proto clues
 !AP_TEMP           = $7E1FAB
 !AP_GOAL_FLAGS     = $7E1FAC
-!AP_PICKUP_FLAGS   = $7E1FB0
+!AP_PICKUP_FLAGS    = $7E1FB0 ; legacy alias for Rush flags
+!AP_RUSH_FLAGS      = $7E1FB0
+!AP_ITEM_FLAGS      = $7E1FB1
 
 ; ============================================
 ; New-game setup
@@ -464,7 +466,7 @@ AP_ClearRuntime:
 .clear_loop:
     STA.l !AP_RUNTIME_START,x
     INX
-    CPX #$10
+    CPX #$20
     BNE .clear_loop
 
     PLX
@@ -955,7 +957,7 @@ AP_RushSearchSpawnCheck:
     SEP #$20
 
     ; If AP already checked Rush Search Location, despawn/skip it.
-    LDA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_RUSH_FLAGS
     AND #$01
     BNE .already_checked
 
@@ -971,27 +973,21 @@ AP_RushSearchPickupCheck:
     PHP
     SEP #$20
 
-    ; Mark Rush Search pickup location checked.
-    ; Bit 0 of AP_PICKUP_FLAGS.
-    LDA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_RUSH_FLAGS
     ORA #$01
-    STA.l !AP_PICKUP_FLAGS
+    STA.l !AP_RUSH_FLAGS
 
     PLP
-
-    ; Skip vanilla Rush Search grant and continue normal pickup cleanup.
     JML $D8D1E7
 
 AP_RushJetSpawnCheck:
     PHP
     SEP #$20
 
-    ; If AP already checked Rush Jet Location, despawn/skip it.
-    LDA.l !AP_PICKUP_FLAGS
-    AND #$20
+    LDA.l !AP_RUSH_FLAGS
+    AND #$02
     BNE .already_checked
 
-    ; Otherwise allow the object to spawn, even if $0B99 says Rush Jet is owned.
     PLP
     RTS
 
@@ -1003,15 +999,11 @@ AP_RushJetPickupCheck:
     PHP
     SEP #$20
 
-    ; Mark Rush Jet pickup location checked.
-    ; Bit 5 of AP_PICKUP_FLAGS.
-    LDA.l !AP_PICKUP_FLAGS
-    ORA #$20
-    STA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_RUSH_FLAGS
+    ORA #$02
+    STA.l !AP_RUSH_FLAGS
 
     PLP
-
-    ; Skip vanilla Rush Jet grant and continue normal pickup cleanup.
     JML $D8D1E7
 
 AP_FreezeManPresenceGate:
@@ -1043,25 +1035,21 @@ AP_RushRPlatePickupCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    ORA #$02
-    STA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$01
+    STA.l !AP_ITEM_FLAGS
 
     PLP
-
-    ; Preserve vanilla plate pickup side effect.
     JSR $D1D0
-
-    ; Skip vanilla plate grant and continue normal pickup cleanup.
     JML $D8D1E7
 
 AP_RushUPlatePickupCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    ORA #$04
-    STA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$02
+    STA.l !AP_ITEM_FLAGS
 
     PLP
 
@@ -1075,9 +1063,9 @@ AP_RushSPlatePickupCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    ORA #$08
-    STA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$04
+    STA.l !AP_ITEM_FLAGS
 
     PLP
 
@@ -1091,9 +1079,9 @@ AP_RushHPlatePickupCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    ORA #$10
-    STA.l !AP_PICKUP_FLAGS
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$08
+    STA.l !AP_ITEM_FLAGS
 
     PLP
 
@@ -1107,8 +1095,8 @@ AP_RushRPlateSpawnCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    AND #$02
+    LDA.l !AP_ITEM_FLAGS
+    AND #$01
     BNE .already_checked
 
     PLP
@@ -1123,8 +1111,8 @@ AP_RushUPlateSpawnCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    AND #$04
+    LDA.l !AP_ITEM_FLAGS
+    AND #$02
     BNE .already_checked
 
     PLP
@@ -1139,8 +1127,8 @@ AP_RushSPlateSpawnCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    AND #$08
+    LDA.l !AP_ITEM_FLAGS
+    AND #$04
     BNE .already_checked
 
     PLP
@@ -1155,8 +1143,8 @@ AP_RushHPlateSpawnCheck:
     PHP
     SEP #$20
 
-    LDA.l !AP_PICKUP_FLAGS
-    AND #$10
+    LDA.l !AP_ITEM_FLAGS
+    AND #$08
     BNE .already_checked
 
     PLP

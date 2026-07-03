@@ -173,10 +173,17 @@ proto_man_check_locations = [
 rush_check_locations = [
     names.rush_search_loc,
     names.rush_jet_loc,
+]
+
+item_bitmap_check_locations = [
     names.rush_r_plate_loc,
     names.rush_u_plate_loc,
     names.rush_s_plate_loc,
     names.rush_h_plate_loc,
+    names.hyper_bolt_loc,
+    names.exit_unit_loc,
+    names.hyper_rocket_buster_loc,
+    names.energy_balancer_loc,
 ]
 
 active_locations = (
@@ -184,6 +191,7 @@ active_locations = (
     + boss_item_locations
     + proto_man_check_locations
     + rush_check_locations
+    + item_bitmap_check_locations
     + [names.wily_capsule]
 )
 

@@ -41,7 +41,7 @@ class MegaMan7WebWorld(WebWorld):
     ]
 
 
-# One randomized item per minimal boss location.
+# One randomized item per active non-event location.
 MINIMAL_ITEM_POOL: List[str] = [
     # Weapons
     names.freeze_cracker,
@@ -60,10 +60,15 @@ MINIMAL_ITEM_POOL: List[str] = [
 
     names.rush_search,
     names.rush_jet,
+
     names.rush_r_plate,
     names.rush_u_plate,
     names.rush_s_plate,
     names.rush_h_plate,
+    names.hyper_bolt,
+    names.exit_unit,
+    names.hyper_rocket_buster,
+    names.energy_balancer,
 ]
 
 # Temporary SNI auth token.
@@ -74,11 +79,11 @@ MM7_ROM_AUTH_TOKEN = b"MM7_AP_TEST"
 class MegaMan7World(World):
     """Mega Man 7 for Archipelago.
 
-    Minimal development version:
-    - creates only 8 Robot Master defeated checks
-    - randomizes only the 8 Robot Master weapons
-    - relies on the SNI client to read $7E1FA1 boss flags
-    - relies on the ROM mailbox to receive items
+    Development version:
+    - creates Robot Master boss item checks
+    - randomizes weapons, Proto checks, Rush items, Rush plates, and selected upgrades
+    - uses the SNI client to read AP flags from WRAM
+    - uses the ROM mailbox to receive items
     """
 
     game = "Mega Man 7"
@@ -146,7 +151,7 @@ class MegaMan7World(World):
         )
 
     def get_filler_item_name(self) -> str:
-        # Not used in the 8-location/8-item minimal build.
+        # Only used if future options create more locations than explicit pool items.
         return names.small_bolt
 
     def generate_output(self, output_directory: str) -> None:

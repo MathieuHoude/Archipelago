@@ -66,13 +66,20 @@ PROTO_FLAG_TO_LOCATION: Dict[int, str] = {
     0x04: names.proto_shield_loc,
 }
 
-PICKUP_FLAG_TO_LOCATION: Dict[int, str] = {
+RUSH_FLAG_TO_LOCATION = {
     0x01: names.rush_search_loc,
-    0x02: names.rush_r_plate_loc,
-    0x04: names.rush_u_plate_loc,
-    0x08: names.rush_s_plate_loc,
-    0x10: names.rush_h_plate_loc,
-    0x20: names.rush_jet_loc,
+    0x02: names.rush_jet_loc,
+}
+
+ITEM_FLAG_TO_LOCATION = {
+    0x01: names.rush_r_plate_loc,
+    0x02: names.rush_u_plate_loc,
+    0x04: names.rush_s_plate_loc,
+    0x08: names.rush_h_plate_loc,
+    0x10: names.hyper_bolt_loc,
+    0x20: names.exit_unit_loc,
+    0x40: names.hyper_rocket_buster_loc,
+    0x80: names.energy_balancer_loc,
 }
 
 class MM7SNIClient(SNIClient):
@@ -140,14 +147,15 @@ class MM7SNIClient(SNIClient):
             if location_id not in ctx.locations_checked:
                 new_checks.append(location_id)
 
-        pickup_flags_raw = await snes_read(ctx, AP_PICKUP_FLAGS, 1)
+        pickup_flags_raw = await snes_read(ctx, AP_PICKUP_FLAGS, 2)
         if pickup_flags_raw is None:
             return
 
-        pickup_flags = pickup_flags_raw[0]
+        rush_flags = pickup_flags_raw[0]
+        item_flags = pickup_flags_raw[1]
 
-        for bit, location_name in PICKUP_FLAG_TO_LOCATION.items():
-            if not pickup_flags & bit:
+        for bit, location_name in RUSH_FLAG_TO_LOCATION.items():
+            if not rush_flags & bit:
                 continue
 
             location_id = location_name_to_id.get(location_name)
@@ -157,6 +165,23 @@ class MM7SNIClient(SNIClient):
 
             if location_id not in ctx.locations_checked:
                 new_checks.append(location_id)
+
+        for bit, location_name in ITEM_FLAG_TO_LOCATION.items():
+            if not item_flags & bit:
+                continue
+
+            location_id = location_name_to_id.get(location_name)
+            if location_id is None:
+                snes_logger.warning("MM7 client missing location id for %s", location_name)
+                continue
+
+            if location_id not in ctx.locations_checked:
+                new_checks.append(location_id)
+
+        if new_checks:
+            await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])
+            for location_id in new_checks:
+                ctx.locations_checked.add(location_id)
 
         if new_checks:
             await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])
