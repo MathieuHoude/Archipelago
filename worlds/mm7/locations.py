@@ -167,6 +167,7 @@ boss_item_locations = [
 proto_man_check_locations = [
     names.proto_man_cloud_man_loc,
     names.proto_man_turbo_man_loc,
+    names.proto_shield_loc,
 ]
 
 rush_check_locations = [

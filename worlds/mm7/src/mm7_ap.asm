@@ -109,11 +109,22 @@ org $C3035F
     JSL AP_LoadBossDefeatedState
 
 ; ============================================
-; Proto Man Cloud Man meeting hook
+; Proto Man meetings hook
 ; ============================================
 
 org $C2C4B3
     JML AP_ProtoCloudMeetingGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C2C4C8
+    JML AP_ProtoTurboMeetingGate
     NOP
     NOP
     NOP
@@ -156,6 +167,23 @@ org $C00DE1
 
 org $D8DAB4
     JSL AP_WilyCapsuleDefeatedHook
+    NOP
+
+; ============================================
+; Rush Search spawn/check AP location hook
+; Original:
+;   D8D11F AD 97 0B    LDA $0B97
+;   D8D122 10 03       BPL $D8D127
+;   D8D124 4C DF D1    JMP $D1DF
+;   D8D127 60          RTS
+; ============================================
+
+org $D8D11F
+    JML AP_RushSearchSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
     NOP
 
 ; ============================================
@@ -266,6 +294,22 @@ org $D8D109
     NOP
     NOP
 
+; ============================================
+; Rush Jet spawn/check AP location hook
+; Original:
+;   D8D130 AD 99 0B    LDA $0B99
+;   D8D133 10 03       BPL $D8D138
+;   D8D135 4C DF D1    JMP $D1DF
+;   D8D138 60          RTS
+; ============================================
+
+org $D8D130
+    JML AP_RushJetSpawnCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
 
 ; ============================================
 ; Rush Jet pickup AP location hook
@@ -773,6 +817,27 @@ AP_ProtoCloudMeetingGate:
     PLP
     JML $C2C4BF
 
+AP_ProtoTurboMeetingGate:
+    PHP
+    SEP #$20
+
+    ; If AP already recorded this Proto Man meeting check, skip it.
+    LDA.l !AP_PROTO_CHECKS
+    AND #$02
+    BNE .skip
+
+    ; Otherwise record the AP check and continue to vanilla meeting/event path.
+    LDA.l !AP_PROTO_CHECKS
+    ORA #$02
+    STA.l !AP_PROTO_CHECKS
+
+    PLP
+    JML $C2C4ED
+
+.skip:
+    PLP
+    JML $C2C4BF
+
 AP_StageExitAPOnlyBossGate:
     PHP
     SEP #$30
@@ -830,6 +895,23 @@ AP_WilyCapsuleDefeatedHook:
     PLP
     RTL
 
+AP_RushSearchSpawnCheck:
+    PHP
+    SEP #$20
+
+    ; If AP already checked Rush Search Location, despawn/skip it.
+    LDA.l !AP_PICKUP_FLAGS
+    AND #$01
+    BNE .already_checked
+
+    ; Otherwise allow the object to spawn, even if $0B97 says Rush Search is owned.
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
+
 AP_RushSearchPickupCheck:
     PHP
     SEP #$20
@@ -844,6 +926,23 @@ AP_RushSearchPickupCheck:
 
     ; Skip vanilla Rush Search grant and continue normal pickup cleanup.
     JML $D8D1E7
+
+AP_RushJetSpawnCheck:
+    PHP
+    SEP #$20
+
+    ; If AP already checked Rush Jet Location, despawn/skip it.
+    LDA.l !AP_PICKUP_FLAGS
+    AND #$20
+    BNE .already_checked
+
+    ; Otherwise allow the object to spawn, even if $0B99 says Rush Jet is owned.
+    PLP
+    RTS
+
+.already_checked:
+    PLP
+    JML $D8D1DF
 
 AP_RushJetPickupCheck:
     PHP

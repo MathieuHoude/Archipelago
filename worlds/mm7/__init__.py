@@ -56,6 +56,7 @@ MINIMAL_ITEM_POOL: List[str] = [
     # Randomized Proto Man clue items
     names.proto_man_cloud_man,
     names.proto_man_turbo_man,
+    names.proto_shield,
 
     names.rush_search,
     names.rush_jet,

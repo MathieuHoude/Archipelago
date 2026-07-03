@@ -111,6 +111,7 @@ hannya_ned_defeated = "HannyaNED^2 Defeated"
 # ============================================================
 proto_man_cloud_man_loc = "Proto Man's Clue 1 Location"
 proto_man_turbo_man_loc = "Proto Man's Clue 2 Location"
+proto_shield_loc = "Proto Shield Location"
 
 # ============================================================
 # Locations — Bass
@@ -131,7 +132,6 @@ exit_unit_loc = "Exit Unit Location"
 hyper_rocket_buster_loc = "Hyper Rocket Buster Location"
 energy_balancer_loc = "Energy Balancer Location"
 beat_loc = "Beat Location"
-proto_shield_loc = "Proto Shield Location"
 
 # ============================================================
 # Locations — Rush items
