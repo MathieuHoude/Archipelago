@@ -53,14 +53,16 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.noise_crush,
     names.scorch_wheel,
 
-    # Randomized Proto Man clue items
+    # Randomized Proto Man clue/items
     names.proto_man_cloud_man,
     names.proto_man_turbo_man,
     names.proto_shield,
 
+    # Rush items
     names.rush_search,
     names.rush_jet,
 
+    # Rush plates and unique upgrades
     names.rush_r_plate,
     names.rush_u_plate,
     names.rush_s_plate,
@@ -69,6 +71,14 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.exit_unit,
     names.hyper_rocket_buster,
     names.energy_balancer,
+
+    # Fillers for Mega Bolt / Mega Health Capsule locations
+    names.small_bolt,
+    names.small_bolt,
+    names.small_bolt,
+    names.large_bolt,
+    names.large_bolt,
+    names.one_up,
 ]
 
 # Temporary SNI auth token.

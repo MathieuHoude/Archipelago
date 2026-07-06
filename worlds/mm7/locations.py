@@ -186,12 +186,22 @@ item_bitmap_check_locations = [
     names.energy_balancer_loc,
 ]
 
+mega_check_locations = [
+    names.mega_bolt_junk_man_loc,
+    names.mega_bolt_turbo_man_loc,
+    names.mega_bolt_shade_man_loc,
+    names.mega_bolt_cloud_man_loc,
+    names.mega_health_capsule_loc,
+    names.mega_bolt_spring_man_loc,
+]
+
 active_locations = (
     minimal_boss_locations
     + boss_item_locations
     + proto_man_check_locations
     + rush_check_locations
     + item_bitmap_check_locations
+    + mega_check_locations
     + [names.wily_capsule]
 )
 
@@ -306,13 +316,13 @@ rush_item_locations: Set[str] = {
     names.rush_jet_loc,
 }
 
-mega_item_locations: Set[str] = {
-    names.mega_bolt_cloud_man_loc,
-    names.mega_bolt_spring_man_loc,
-    names.mega_bolt_shade_man_loc,
-    names.mega_bolt_turbo_man_loc,
+mega_items_locations: Set[str] = {
     names.mega_bolt_junk_man_loc,
+    names.mega_bolt_turbo_man_loc,
+    names.mega_bolt_shade_man_loc,
+    names.mega_bolt_cloud_man_loc,
     names.mega_health_capsule_loc,
+    names.mega_bolt_spring_man_loc,
 }
 
 item_name_groups: Dict[str, Set[str]] = {
@@ -323,7 +333,7 @@ item_name_groups: Dict[str, Set[str]] = {
     "Rush Plates": rush_plate_locations,
     "Rush Items": rush_item_locations,
     "Unique Upgrades": unique_upgrade_locations,
-    "Mega Items": mega_item_locations,
+    "Mega Items": mega_items_locations,
 }
 
 

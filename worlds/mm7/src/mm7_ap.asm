@@ -9,25 +9,26 @@ hirom
 ; $7E1FA0 appears to be cleared during state transitions.
 ; ============================================
 
-!AP_BOSS_FLAGS     = $7E1FA1
-!AP_BOSS_FLAGS_2   = $7E1FA2
-!AP_DEBUG_FLAGS    = $7E1FA3
-!AP_ITEM_ID_LO     = $7E1FA4
-!AP_ITEM_ID_HI     = $7E1FA5
-!AP_EXECUTE_FLAG   = $7E1FA6
-!AP_RECV_INDEX_LO  = $7E1FA7
-!AP_RECV_INDEX_HI  = $7E1FA8
-!AP_CONNECTION     = $7E1FA9
-!AP_RUNTIME_START  = $7E1FA1
-!MM7_PROTO_FLAGS   = $7E0B78
+!AP_BOSS_FLAGS      = $7E1FA1
+!AP_BOSS_FLAGS_2    = $7E1FA2
+!AP_DEBUG_FLAGS     = $7E1FA3
+!AP_ITEM_ID_LO      = $7E1FA4
+!AP_ITEM_ID_HI      = $7E1FA5
+!AP_EXECUTE_FLAG    = $7E1FA6
+!AP_RECV_INDEX_LO   = $7E1FA7
+!AP_RECV_INDEX_HI   = $7E1FA8
+!AP_CONNECTION      = $7E1FA9
+!AP_RUNTIME_START   = $7E1FA1
+!MM7_PROTO_FLAGS    = $7E0B78
 
-!AP_PROTO_CHECKS   = $7E1FA2 ; already AP_BOSS_FLAGS_2
-!AP_PROTO_ITEMS    = $7E1FAA ; AP-owned randomized Proto clues
-!AP_TEMP           = $7E1FAB
-!AP_GOAL_FLAGS     = $7E1FAC
+!AP_PROTO_CHECKS    = $7E1FA2 ; already AP_BOSS_FLAGS_2
+!AP_PROTO_ITEMS     = $7E1FAA ; AP-owned randomized Proto clues
+!AP_TEMP            = $7E1FAB
+!AP_GOAL_FLAGS      = $7E1FAC
 !AP_PICKUP_FLAGS    = $7E1FB0 ; legacy alias for Rush flags
 !AP_RUSH_FLAGS      = $7E1FB0
 !AP_ITEM_FLAGS      = $7E1FB1
+!AP_MEGA_FLAGS      = $7E1FB2 ; AP checked flags for $0BB1 mega items
 
 ; ============================================
 ; New-game setup
@@ -453,6 +454,27 @@ org $D8D0B4
 
 org $D8D0BF
     JML AP_HyperRocketBusterPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C14D72
+    JML AP_MegaItemRushSearchCheck
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
     NOP
     NOP
     NOP
@@ -1384,5 +1406,38 @@ AP_HyperRocketBusterRushSearchGate:
 .already_checked:
     PLP
     JML $C14DA8
+
+AP_MegaItemRushSearchCheck:
+    PHP
+    SEP #$30
+
+    LDA #$01
+
+.loop:
+    DEX
+    DEX
+    BMI .check
+    ASL
+    BRA .loop
+
+.check:
+    STA.l !AP_TEMP
+
+    LDA.l !AP_MEGA_FLAGS
+    AND.l !AP_TEMP
+    BNE .already_checked
+
+    LDA.l !AP_MEGA_FLAGS
+    ORA.l !AP_TEMP
+    STA.l !AP_MEGA_FLAGS
+
+    LDX $0000
+
+    PLP
+    JML $C14D88
+
+.already_checked:
+    PLP
+    JML $C14D80
 
 assert pc() <= $D8FF00
