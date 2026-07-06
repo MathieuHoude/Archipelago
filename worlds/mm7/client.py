@@ -35,6 +35,7 @@ AP_CONNECTION = WRAM_START + 0x1FA9
 AP_GOAL_FLAGS = WRAM_START + 0x1FAC
 AP_PICKUP_FLAGS = WRAM_START + 0x1FB0
 AP_MEGA_FLAGS = WRAM_START + 0x1FB2
+AP_MISC_FLAGS = WRAM_START + 0x1FB3
 
 # Boss medal/check flag order confirmed from testing:
 # 01 = Freeze, 02 = Cloud, 04 = Junk, 08 = Turbo,
@@ -91,6 +92,10 @@ MEGA_FLAG_TO_LOCATION = {
     0x10: names.mega_health_capsule_loc,
     0x20: names.mega_bolt_spring_man_loc,
 } 
+
+MISC_FLAG_TO_LOCATION = {
+    0x01: names.beat_loc,
+}
 
 class MM7SNIClient(SNIClient):
     game = "Mega Man 7"
@@ -196,6 +201,24 @@ class MM7SNIClient(SNIClient):
 
         for bit, location_name in MEGA_FLAG_TO_LOCATION.items():
             if not mega_flags & bit:
+                continue
+
+            location_id = location_name_to_id.get(location_name)
+            if location_id is None:
+                snes_logger.warning("MM7 client missing location id for %s", location_name)
+                continue
+
+            if location_id not in ctx.locations_checked:
+                new_checks.append(location_id)
+
+        misc_flags_raw = await snes_read(ctx, AP_MISC_FLAGS, 1)
+        if misc_flags_raw is None:
+            return
+
+        misc_flags = misc_flags_raw[0]
+
+        for bit, location_name in MISC_FLAG_TO_LOCATION.items():
+            if not misc_flags & bit:
                 continue
 
             location_id = location_name_to_id.get(location_name)

@@ -29,6 +29,7 @@ hirom
 !AP_RUSH_FLAGS      = $7E1FB0
 !AP_ITEM_FLAGS      = $7E1FB1
 !AP_MEGA_FLAGS      = $7E1FB2 ; AP checked flags for $0BB1 mega items
+!AP_MISC_FLAGS      = $7E1FB3
 
 ; ============================================
 ; New-game setup
@@ -369,6 +370,18 @@ org $C286ED
     NOP
     NOP
     NOP
+    NOP
+
+org $C35117
+    JML AP_BeatEncounterGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8CE8D
+    JML AP_BeatRewardCheck
     NOP
 
 ; ============================================
@@ -1439,5 +1452,35 @@ AP_MegaItemRushSearchCheck:
 .already_checked:
     PLP
     JML $C14D80
+
+AP_BeatEncounterGate:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_MISC_FLAGS
+    AND #$01
+    BNE .already_checked
+
+    PLP
+    JML $C35121
+
+.already_checked:
+    PLP
+    JSL $C108EF
+    JML $C35120
+
+AP_BeatRewardCheck:
+    PHP
+    SEP #$20
+
+    ; Mark Beat Location checked.
+    LDA.l !AP_MISC_FLAGS
+    ORA #$01
+    STA.l !AP_MISC_FLAGS
+
+    PLP
+
+    ; Skip vanilla Beat inventory grant and continue the original sequence.
+    JML $D8CE92
 
 assert pc() <= $D8FF00

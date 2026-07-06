@@ -71,6 +71,7 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.exit_unit,
     names.hyper_rocket_buster,
     names.energy_balancer,
+    names.beat,
 
     # Fillers for Mega Bolt / Mega Health Capsule locations
     names.small_bolt,

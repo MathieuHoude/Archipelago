@@ -195,6 +195,10 @@ mega_check_locations = [
     names.mega_bolt_spring_man_loc,
 ]
 
+misc_check_locations = [
+    names.beat_loc,
+]
+
 active_locations = (
     minimal_boss_locations
     + boss_item_locations
@@ -202,6 +206,7 @@ active_locations = (
     + rush_check_locations
     + item_bitmap_check_locations
     + mega_check_locations
+    + misc_check_locations
     + [names.wily_capsule]
 )
 
