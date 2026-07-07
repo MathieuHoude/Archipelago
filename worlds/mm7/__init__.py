@@ -25,6 +25,7 @@ from .locations import (
 from .options import MegaMan7Options
 from .rom import MM7ProcedurePatch, MM7Settings, patch_rom
 from .client import MM7SNIClient
+from .rules import set_rules as set_mm7_rules
 
 
 class MegaMan7WebWorld(WebWorld):
@@ -152,16 +153,13 @@ class MegaMan7World(World):
         self.multiworld.regions += [menu, main_stages]
 
     def set_rules(self) -> None:
-        # Minimal milestone:
-        # your ROM patch makes all 8 Robot Master stages visible/selectable,
-        # so no AP access rules are needed yet.
-        pass
+        set_mm7_rules(self, self.multiworld, self.player)
 
-    def generate_basic(self) -> None:
-        self.multiworld.completion_condition[self.player] = lambda state: state.has(
-            names.wily_capsule,
-            self.player,
-        )
+        def generate_basic(self) -> None:
+            self.multiworld.completion_condition[self.player] = lambda state: state.has(
+                names.wily_capsule,
+                self.player,
+            )
 
     def get_filler_item_name(self) -> str:
         # Only used if future options create more locations than explicit pool items.

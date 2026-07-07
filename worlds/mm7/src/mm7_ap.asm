@@ -443,6 +443,10 @@ org $C14D8D
     NOP
     NOP
 
+org $C047EB
+    JML AP_ExitUnitMedalCheck
+    NOP
+
 ; ============================================
 ; Energy Balancer spawn/check AP location hook
 ; $0BA4 bit $80 -> AP_ITEM_FLAGS bit $80
@@ -1615,6 +1619,31 @@ AP_ExitUnitRushSearchGate:
 .already_checked:
     PLP
     JML $C14D96
+
+AP_ExitUnitMedalCheck:
+    PHP
+    SEP #$30
+    PHX
+
+    ; X is the vanilla offset into $0B83 table.
+    ; Convert $02,$04,...,$10 into boss index 1..8.
+    TXA
+    LSR
+    TAX
+
+    LDA.l AP_BossBitMaskTable,x
+    AND.l !AP_BOSS_FLAGS
+    BEQ .no_medal
+
+.has_medal:
+    PLX
+    PLP
+    JML $C047F0
+
+.no_medal:
+    PLX
+    PLP
+    JML $C04807
 
 
 AP_EnergyBalancerSpawnCheck:

@@ -20,12 +20,11 @@ class StartingBolts(Range):
 
 
 class LogicBossWeakness(Toggle):
-    """When enabled, each boss logically requires the player to have
-    at least one of its weakness weapons before that boss location
-    is considered accessible. This promotes weakness weapons from
-    'useful' to 'progression' in the item pool."""
+    """
+    Every main boss will logically expect you to have its weakness.
+    """
     display_name = "Boss Weakness Logic"
-    default = 0
+    default = True
 
 
 @dataclass
