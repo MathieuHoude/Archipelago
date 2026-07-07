@@ -406,6 +406,14 @@ org $D8D06E
     NOP
     NOP
 
+org $C14D8D
+    JML AP_ExitUnitRushSearchGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
 ; ============================================
 ; Energy Balancer spawn/check AP location hook
 ; $0BA4 bit $80 -> AP_ITEM_FLAGS bit $80
@@ -423,6 +431,14 @@ org $D8D076
 
 org $D8D081
     JML AP_EnergyBalancerPickupCheck
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C14DAA
+    JML AP_EnergyBalancerRushSearchGate
+    NOP
     NOP
     NOP
     NOP
@@ -472,6 +488,21 @@ org $D8D0BF
     NOP
     NOP
 
+org $C14D98
+    JML AP_HyperRocketBusterRushSearchGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
 org $C14D72
     JML AP_MegaItemRushSearchCheck
     NOP
@@ -493,14 +524,8 @@ org $C14D72
     NOP
     NOP
 
-org $C14D98
-    JML AP_HyperRocketBusterRushSearchGate
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
+org $C00DA8
+    JML AP_IntroStageClearCheck
     NOP
     NOP
     NOP
@@ -1351,6 +1376,25 @@ AP_ExitUnitSpawnCheck:
     PLP
     JML $D8D1DF
 
+AP_ExitUnitRushSearchGate:
+    PHP
+    SEP #$30
+
+    LDX #$1B
+
+    ; If AP already checked Exit Unit Location, skip it.
+    LDA.l !AP_ITEM_FLAGS
+    AND #$20
+    BNE .already_checked
+
+    ; Otherwise allow the search result.
+    PLP
+    JML $C14D88
+
+.already_checked:
+    PLP
+    JML $C14D96
+
 
 AP_EnergyBalancerSpawnCheck:
     PHP
@@ -1366,6 +1410,25 @@ AP_EnergyBalancerSpawnCheck:
 .already_checked:
     PLP
     JML $D8D1DF
+
+AP_EnergyBalancerRushSearchGate:
+    PHP
+    SEP #$30
+
+    LDX #$1D
+
+    ; If AP already checked Energy Balancer Location, skip it.
+    LDA.l !AP_ITEM_FLAGS
+    AND #$80
+    BNE .already_checked
+
+    ; Otherwise allow the search result.
+    PLP
+    JML $C14D88
+
+.already_checked:
+    PLP
+    JML $C14DB3
 
 
 AP_HyperBoltSpawnCheck:
@@ -1482,5 +1545,26 @@ AP_BeatRewardCheck:
 
     ; Skip vanilla Beat inventory grant and continue the original sequence.
     JML $D8CE92
+
+AP_IntroStageClearCheck:
+    PHP
+    SEP #$20
+
+    ; Preserve vanilla behavior: mark Intro Stage cleared.
+    STZ $0B79
+
+    ; Mark Rush Coil / Intro Stage clear location checked.
+    LDA.l !AP_RUSH_FLAGS
+    ORA #$04
+    STA.l !AP_RUSH_FLAGS
+
+    ; Preserve vanilla behavior.
+    LDA #$04
+    STA $DF
+
+    PLP
+
+    ; Preserve vanilla transition.
+    JML $C06739
 
 assert pc() <= $D8FF00

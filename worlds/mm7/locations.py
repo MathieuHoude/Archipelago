@@ -173,6 +173,7 @@ proto_man_check_locations = [
 rush_check_locations = [
     names.rush_search_loc,
     names.rush_jet_loc,
+    names.rush_coil_loc
 ]
 
 item_bitmap_check_locations = [

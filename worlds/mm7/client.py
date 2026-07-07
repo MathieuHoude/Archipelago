@@ -71,6 +71,7 @@ PROTO_FLAG_TO_LOCATION: Dict[int, str] = {
 RUSH_FLAG_TO_LOCATION = {
     0x01: names.rush_search_loc,
     0x02: names.rush_jet_loc,
+    0x04: names.rush_coil_loc,
 }
 
 ITEM_FLAG_TO_LOCATION = {

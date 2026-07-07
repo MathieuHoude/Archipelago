@@ -61,6 +61,7 @@ MINIMAL_ITEM_POOL: List[str] = [
     # Rush items
     names.rush_search,
     names.rush_jet,
+    names.rush_coil,
 
     # Rush plates and unique upgrades
     names.rush_r_plate,
