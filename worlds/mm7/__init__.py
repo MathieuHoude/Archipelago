@@ -81,6 +81,7 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.large_bolt,
     names.large_bolt,
     names.one_up,
+    names.one_up,
 ]
 
 # Temporary SNI auth token.

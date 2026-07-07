@@ -198,6 +198,7 @@ mega_check_locations = [
 
 misc_check_locations = [
     names.beat_loc,
+    names.mash_defeated
 ]
 
 active_locations = (

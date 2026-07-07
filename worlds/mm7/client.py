@@ -96,6 +96,7 @@ MEGA_FLAG_TO_LOCATION = {
 
 MISC_FLAG_TO_LOCATION = {
     0x01: names.beat_loc,
+    0x02: names.mash_defeated,
 }
 
 class MM7SNIClient(SNIClient):

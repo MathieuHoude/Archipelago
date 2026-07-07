@@ -533,6 +533,35 @@ org $C00DA8
     NOP
     NOP
 
+org $C00C59
+    JML AP_RobotMuseumRouteGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C00DD7
+    JML AP_RobotMuseumClearCheck
+    NOP
+
+
 ; ============================================
 ; Small C0-bank helper routines
 ;
@@ -1566,5 +1595,71 @@ AP_IntroStageClearCheck:
 
     ; Preserve vanilla transition.
     JML $C06739
+
+AP_RobotMuseumRouteGate:
+    PHP
+    SEP #$30
+    PHX
+
+    ; If Robot Museum route/check already happened, use normal route.
+    LDA.l !AP_MISC_FLAGS
+    AND #$06        ; $02 = Mash checked, $04 = route already triggered
+    BNE .normal_route
+
+    ; Count AP defeated Robot Masters.
+    LDA.l !AP_BOSS_FLAGS
+    STA.l !AP_TEMP
+
+    LDX #$00
+
+.count_loop:
+    LDA.l !AP_TEMP
+    BEQ .not_enough
+
+    LSR
+    STA.l !AP_TEMP
+
+    BCC .next_bit
+
+    INX
+    CPX #$04
+    BCS .go_robot_museum
+
+.next_bit:
+    BRA .count_loop
+
+.go_robot_museum:
+    ; Mark Robot Museum route as triggered so it does not repeat
+    ; if the player exits/dies/re-enters awkwardly before Mash check.
+    LDA.l !AP_MISC_FLAGS
+    ORA #$04
+    STA.l !AP_MISC_FLAGS
+
+    PLX
+    PLP
+    JML $C00C72
+
+.not_enough:
+.normal_route:
+    PLX
+    PLP
+    JML $C00C7E
+
+AP_RobotMuseumClearCheck:
+    PHP
+    SEP #$20
+
+    ; Preserve vanilla behavior.
+    INC $0B7A
+
+    ; Mark Mash / Robot Museum location checked.
+    LDA.l !AP_MISC_FLAGS
+    ORA #$02
+    STA.l !AP_MISC_FLAGS
+
+    PLP
+
+    ; Preserve vanilla branch.
+    JML $C00E08
 
 assert pc() <= $D8FF00
