@@ -220,6 +220,15 @@ org $D8D128
     NOP
     NOP
 
+org $D8D9C7
+    JML AP_ShopRushSearchCheck
+    NOP
+
+org $D8D95F
+    JML AP_ShopRushSearchPurchase
+    NOP
+    NOP
+
 ; ============================================
 ; Rush plate pickup AP location hooks
 ; Original plate grant handlers are 11 bytes each:
@@ -345,6 +354,15 @@ org $D8D139
     NOP
     NOP
 
+org $D8D9C0
+    JML AP_ShopRushJetCheck
+    NOP
+
+org $D8D959
+    JML AP_ShopRushJetPurchase
+    NOP
+    NOP
+
 ; ============================================
 ; Freeze Man presence gate.
 ; Original block:
@@ -406,6 +424,17 @@ org $D8D06E
     NOP
     NOP
 
+org $D8D995
+    JML AP_ShopExitUnitCheck
+    NOP
+    NOP
+    NOP
+
+org $D8D93F
+    JML AP_ShopExitUnitPurchase
+    NOP
+    NOP
+
 org $C14D8D
     JML AP_ExitUnitRushSearchGate
     NOP
@@ -433,6 +462,17 @@ org $D8D081
     JML AP_EnergyBalancerPickupCheck
     NOP
     NOP
+    NOP
+    NOP
+
+org $D8D9A8
+    JML AP_ShopEnergyBalancerCheck
+    NOP
+    NOP
+    NOP
+
+org $D8D949
+    JML AP_ShopEnergyBalancerPurchase
     NOP
     NOP
 
@@ -500,6 +540,25 @@ org $C14D98
     NOP
     NOP
     NOP
+    NOP
+    NOP
+
+org $D8D790
+    JML AP_ShopHyperRocketBusterSuperAdapterGate
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $D8D9B7
+    JML AP_ShopHyperRocketBusterCheck
+    NOP
+    NOP
+    NOP
+
+org $D8D953
+    JML AP_ShopHyperRocketBusterPurchase
     NOP
     NOP
 
@@ -1172,6 +1231,32 @@ AP_RushSearchPickupCheck:
     PLP
     JML $D8D1E7
 
+AP_ShopRushSearchCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_RUSH_FLAGS
+    AND #$01
+    BNE .already_checked
+
+    PLP
+    JML $D8D9CC
+
+.already_checked:
+    PLP
+    JML $D8D99E
+
+AP_ShopRushSearchPurchase:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_RUSH_FLAGS
+    ORA #$01
+    STA.l !AP_RUSH_FLAGS
+
+    PLP
+    RTS
+
 AP_RushJetSpawnCheck:
     PHP
     SEP #$20
@@ -1197,6 +1282,32 @@ AP_RushJetPickupCheck:
 
     PLP
     JML $D8D1E7
+
+AP_ShopRushJetCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_RUSH_FLAGS
+    AND #$02
+    BNE .already_checked
+
+    PLP
+    JML $D8D9C5
+
+.already_checked:
+    PLP
+    JML $D8D99E        ; vanilla unavailable path
+
+AP_ShopRushJetPurchase:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_RUSH_FLAGS
+    ORA #$02
+    STA.l !AP_RUSH_FLAGS
+
+    PLP
+    RTS
 
 AP_FreezeManPresenceGate:
     PHP
@@ -1357,6 +1468,32 @@ AP_ExitUnitPickupCheck:
     PLP
     JML $D8D1E7
 
+AP_ShopExitUnitCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$20
+    BNE .already_checked
+
+    PLP
+    JML $D8D99C
+
+.already_checked:
+    PLP
+    JML $D8D99E
+
+AP_ShopExitUnitPurchase:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$20
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    RTS
+
 AP_EnergyBalancerPickupCheck:
     PHP
     SEP #$20
@@ -1367,6 +1504,32 @@ AP_EnergyBalancerPickupCheck:
 
     PLP
     JML $D8D1E7
+
+AP_ShopEnergyBalancerCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$80
+    BNE .already_checked
+
+    PLP
+    JML $D8D9AF
+
+.already_checked:
+    PLP
+    JML $D8D99E
+
+AP_ShopEnergyBalancerPurchase:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$80
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    RTS
 
 AP_HyperBoltPickupCheck:
     PHP
@@ -1389,6 +1552,35 @@ AP_HyperRocketBusterPickupCheck:
 
     PLP
     JML $D8D1E7
+
+AP_ShopHyperRocketBusterCheck:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    AND #$40
+    BNE .already_checked
+
+    PLP
+    JML $D8D9BE
+
+.already_checked:
+    PLP
+    JML $D8D99E
+
+AP_ShopHyperRocketBusterSuperAdapterGate:
+    JML $D8D75F
+
+AP_ShopHyperRocketBusterPurchase:
+    PHP
+    SEP #$20
+
+    LDA.l !AP_ITEM_FLAGS
+    ORA #$40
+    STA.l !AP_ITEM_FLAGS
+
+    PLP
+    RTS
 
 AP_ExitUnitSpawnCheck:
     PHP
