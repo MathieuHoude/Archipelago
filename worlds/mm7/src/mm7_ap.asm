@@ -30,6 +30,38 @@ hirom
 !AP_ITEM_FLAGS      = $7E1FB1
 !AP_MEGA_FLAGS      = $7E1FB2 ; AP checked flags for $0BB1 mega items
 !AP_MISC_FLAGS      = $7E1FB3
+!AP_WILY_FLAGS      = $7E1FB4
+!AP_WILY_ACCESS     = $7E1FB5
+!AP_SELECTED_WILY_STAGE = $7E1FB6
+!AP_DRAW_WILY_NUMBER = $7E1FB7
+
+org $C0356D
+    NOP
+    NOP
+
+; Wily stage-select graphics package hook.
+; Original at C03376:
+;   LDY #$0C
+;   JSR $16D4
+; The following JSR $0114 at C0337B is preserved.
+org $C03376
+    LDY #$0C
+
+org $C034FA
+    JSL AP_StageSelectWilyCycleHook
+    NOP
+    NOP
+    NOP
+    NOP
+
+org $C03DF6
+    JSL AP_PostOAMDrawHook
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
 
 ; ============================================
 ; New-game setup
@@ -624,6 +656,18 @@ org $C00DD7
     JML AP_RobotMuseumClearCheck
     NOP
 
+; Stage select confirm hook.
+; Handles both normal stage confirms and Wily-box confirms.
+; Blocks Wily confirm if no AP Wily stage is available.
+org $C03504
+    JML AP_StageSelectConfirmHook
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
 
 ; ============================================
 ; Small C0-bank helper routines
@@ -674,6 +718,133 @@ AP_StageSelectMedalHook:
     PLX
     PLP
     RTL
+
+AP_StageSelectWilyCycleHook:
+    PHP
+    SEP #$30
+
+    ; Preserve replaced vanilla behavior.
+    JSR $381C
+
+    ; Only handle/display overlay if cursor is on the Wily box.
+    JSR $380E
+    BNE .not_wily_box
+
+    ; Cursor is on Wily box. Request post-OAM draw.
+    LDA #$01
+    STA.l !AP_DRAW_WILY_NUMBER
+
+    ; $00A5 = one-frame input for R/L/X/A
+    ; R = $10, L = $20
+    LDA $00A5
+    AND #$10
+    BNE .cycle_forward
+
+    LDA $00A5
+    AND #$20
+    BNE .cycle_backward
+
+    BRA .finish_vanilla_input
+
+.not_wily_box:
+    ; Do not draw the Wily stage number on normal bosses.
+    LDA #$00
+    STA.l !AP_DRAW_WILY_NUMBER
+    BRA .finish_vanilla_input
+
+.cycle_forward:
+    JSL AP_SelectNextAvailableWilyStage
+
+    ; Play cursor/change sound if a Wily stage is selected.
+    LDA.l !AP_SELECTED_WILY_STAGE
+    BEQ .finish_vanilla_input
+
+    LDA #$40
+    JSL $C03205
+
+    BRA .finish_vanilla_input
+
+.cycle_backward:
+    JSL AP_SelectPreviousAvailableWilyStage
+
+    ; Play cursor/change sound if a Wily stage is selected.
+    LDA.l !AP_SELECTED_WILY_STAGE
+    BEQ .finish_vanilla_input
+
+    LDA #$40
+    JSL $C03205
+
+    BRA .finish_vanilla_input
+
+.finish_vanilla_input:
+    PLP
+
+    ; Preserve replaced vanilla behavior and flags for BEQ $C03521.
+    LDA $00A6
+    AND #$50
+    RTL
+
+AP_StageSelectConfirmHook:
+    PHP
+    SEP #$30
+
+    ; Vanilla confirm path first checks whether the selected icon is Wily.
+    ; If this returns nonzero, A already contains the normal stage id.
+    JSR $380E
+    BNE .normal_stage
+
+    ; Wily box selected. If no AP Wily stage is available, cancel confirm.
+    JSL AP_HasAnyAvailableWilyStage
+    BCC .cancel_wily_confirm
+
+    ; A valid AP Wily stage exists. Return its stage id in A and continue
+    ; at vanilla STA $0B73.
+    JSL AP_GetSelectedWilyStageId
+    PLP
+    JML $C0350F
+
+.normal_stage:
+    ; Preserve vanilla behavior: store the normal stage id returned by $380E.
+    PLP
+    JML $C0350F
+
+.cancel_wily_confirm:
+    ; Skip the confirm action entirely.
+    PLP
+    JML $C03521
+
+AP_PostOAMDrawHook:
+    PHP
+    SEP #$30
+
+    ; Preserve replaced vanilla behavior.
+    LDA #$30
+    STA $08FF
+
+    LDA #$E0
+    STA $08FD
+
+    ; Only draw if stage-select input hook requested it this frame.
+    LDA.l !AP_DRAW_WILY_NUMBER
+    BEQ .done
+
+    LDA #$00
+    STA.l !AP_DRAW_WILY_NUMBER
+
+    ; Draw after vanilla OAM render/cleanup.
+    JSL AP_DrawSelectedWilyStageNumber
+
+.done:
+    PLP
+    RTL
+
+assert pc() <= $C08000
+
+org $C00DF8
+    JML AP_WilyStageClearCheck
+    NOP
+    NOP
+    NOP
 
 ; ============================================
 ; AP custom routines block
@@ -845,6 +1016,24 @@ AP_CheckItemReceive:
     JMP .give_proto_turbo_clue
 +
 
+    ; $1F = Wily 1 Access Code
+    CMP #$1F
+    BNE +
+    JMP .give_wily_1_access
++
+
+    ; $20 = Wily 2 Access Code
+    CMP #$20
+    BNE +
+    JMP .give_wily_2_access
++
+
+    ; $21 = Wily 3 Access Code
+    CMP #$21
+    BNE +
+    JMP .give_wily_3_access
++
+
     JMP .finish
 
 .give_weapon_table:
@@ -886,8 +1075,11 @@ AP_CheckItemReceive:
     LDA.l $7E0BA4
     AND #$0F
     CMP #$0F
-    BNE .finish
+    BEQ .grant_super_adapter
 
+    JMP .finish
+
+.grant_super_adapter:
     LDA #$9C
     STA.l $7E0B9F
 
@@ -958,6 +1150,27 @@ AP_CheckItemReceive:
 
     JMP .finish
 
+.give_wily_1_access:
+    LDA.l !AP_WILY_ACCESS
+    ORA #$01
+    STA.l !AP_WILY_ACCESS
+    JSR AP_EnsureVanillaWilyAvailable
+    JMP .finish
+
+.give_wily_2_access:
+    LDA.l !AP_WILY_ACCESS
+    ORA #$02
+    STA.l !AP_WILY_ACCESS
+    JSR AP_EnsureVanillaWilyAvailable
+    JMP .finish
+
+.give_wily_3_access:
+    LDA.l !AP_WILY_ACCESS
+    ORA #$04
+    STA.l !AP_WILY_ACCESS
+    JSR AP_EnsureVanillaWilyAvailable
+    JMP .finish
+
 .finish:
     ; Increment 16-bit received index stored as two bytes.
     LDA.l !AP_RECV_INDEX_LO
@@ -993,6 +1206,26 @@ AP_WeaponAddressTable:
     dw $0B9B ; $09 Rush Coil
     dw $0B97 ; $0A Rush Search
     dw $0B99 ; $0B Rush Jet
+
+AP_WilyStageClearBitTable:
+    db $00 ; 0 = unused / Wily not started
+    db $01 ; 1 -> Guts Man G
+    db $02 ; 2 -> Gamerizer
+    db $04 ; 3 -> HannyaNED²
+    db $00 ; 4 -> no AP check
+    db $00 ; 5 -> no AP check
+
+AP_EnsureVanillaWilyAvailable:
+    ; $0B7C must be nonzero for the vanilla stage-select Wily box setup.
+    ; AP_SELECTED_WILY_STAGE remains the AP-owned selected Wily stage.
+    LDA.l $7E0B7C
+    BNE .done
+
+    LDA #$01
+    STA.l $7E0B7C
+
+.done:
+    RTS
 
 AP_AddSmallBolts:
     CLC
@@ -1172,18 +1405,20 @@ AP_StageExitAPOnlyBossGate:
     JML $C00DDC
 
 AP_WilyUnlockGate:
+    ; Wily access is item-gated by AP Wily Access Codes.
+    ; Do not unlock vanilla Wily just because all 8 Robot Masters are defeated.
     PHP
     SEP #$20
 
-    LDA.l !AP_BOSS_FLAGS
-    CMP #$FF
-    BEQ .all_defeated
+    LDA.l !AP_WILY_ACCESS
+    AND #$07
+    BNE .has_wily_access
 
-.not_all_defeated:
+.no_wily_access:
     PLP
     JML $C00E08
 
-.all_defeated:
+.has_wily_access:
     PLP
     JML $C00DEC
 
@@ -1883,4 +2118,423 @@ AP_RobotMuseumClearCheck:
     ; Preserve vanilla branch.
     JML $C00E08
 
+AP_WilyStageClearCheck:
+    PHP
+    SEP #$20
+
+    ; Use AP-selected Wily stage, not vanilla $0B7C.
+    ; Wily 1/2/3 can now be cleared out of vanilla order.
+    LDA.l !AP_SELECTED_WILY_STAGE
+
+    CMP #$01
+    BEQ .clear_wily_1
+
+    CMP #$02
+    BEQ .clear_wily_2
+
+    CMP #$03
+    BEQ .clear_wily_3
+
+    CMP #$04
+    BEQ .clear_wily_4
+
+    ; Unknown/no selected Wily stage. Fall back to vanilla behavior.
+    PLP
+    LDA.l $7E0B7C
+    INC
+    STA.l $7E0B7C
+    JML $C00DFF
+
+.clear_wily_1:
+    LDA.l !AP_WILY_FLAGS
+    ORA #$01
+    STA.l !AP_WILY_FLAGS
+    BRA .return_to_stage_select
+
+.clear_wily_2:
+    LDA.l !AP_WILY_FLAGS
+    ORA #$02
+    STA.l !AP_WILY_FLAGS
+    BRA .return_to_stage_select
+
+.clear_wily_3:
+    LDA.l !AP_WILY_FLAGS
+    ORA #$04
+    STA.l !AP_WILY_FLAGS
+    BRA .return_to_stage_select
+
+.clear_wily_4:
+    ; Wily 4 / Capsule keeps vanilla final-stage behavior.
+    ; AP goal is handled by AP_WilyCapsuleDefeatedHook.
+    LDA #$00
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    PLP
+
+    LDA.l $7E0B7C
+    INC
+    STA.l $7E0B7C
+    JML $C00DFF
+
+.return_to_stage_select:
+    ; The selected Wily stage is now consumed.
+    LDA #$00
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    PLP
+
+    ; Do not continue vanilla Wily progression for AP Wily 1/2/3.
+    JML $C00E08
+
+AP_GetSelectedWilyStageId:
+    PHP
+    SEP #$20
+
+    ; Keep the player's L/R selection if it is still available.
+    LDA.l !AP_SELECTED_WILY_STAGE
+    BEQ .choose_first
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .use_selected
+
+.choose_first:
+    JSR AP_SelectFirstAvailableWilyStage
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    BEQ .no_available_stage
+
+.use_selected:
+    LDA.l !AP_SELECTED_WILY_STAGE
+    CLC
+    ADC #$09
+
+    PLP
+    RTL
+
+.no_available_stage:
+    ; The confirm hook should prevent this routine from being used when
+    ; no AP Wily stage is available. Return 0 as a defensive fallback.
+    LDA #$00
+
+    PLP
+    RTL
+
+AP_HasAnyAvailableWilyStage:
+    PHP
+    SEP #$20
+
+    ; Keep the player's L/R selection if it is still available.
+    LDA.l !AP_SELECTED_WILY_STAGE
+    BEQ .choose_first
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .available
+
+.choose_first:
+    JSR AP_SelectFirstAvailableWilyStage
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    BEQ .none
+
+.available:
+    PLP
+    SEC
+    RTL
+
+.none:
+    PLP
+    CLC
+    RTL
+
+AP_SelectFirstAvailableWilyStage:
+    ; Wily 1 available if access code owned and stage not cleared.
+    LDA.l !AP_WILY_ACCESS
+    AND #$01
+    BEQ .check_2
+
+    LDA.l !AP_WILY_FLAGS
+    AND #$01
+    BNE .check_2
+
+    LDA #$01
+    STA.l !AP_SELECTED_WILY_STAGE
+    RTS
+
+.check_2:
+    ; Wily 2 available if access code owned and stage not cleared.
+    LDA.l !AP_WILY_ACCESS
+    AND #$02
+    BEQ .check_3
+
+    LDA.l !AP_WILY_FLAGS
+    AND #$02
+    BNE .check_3
+
+    LDA #$02
+    STA.l !AP_SELECTED_WILY_STAGE
+    RTS
+
+.check_3:
+    ; Wily 3 available if access code owned and stage not cleared.
+    LDA.l !AP_WILY_ACCESS
+    AND #$04
+    BEQ .check_4
+
+    LDA.l !AP_WILY_FLAGS
+    AND #$04
+    BNE .check_4
+
+    LDA #$03
+    STA.l !AP_SELECTED_WILY_STAGE
+    RTS
+
+.check_4:
+    ; Wily 4 available after Wily 1-3 are cleared.
+    LDA.l !AP_WILY_FLAGS
+    AND #$07
+    CMP #$07
+    BNE .none
+
+    LDA #$04
+    STA.l !AP_SELECTED_WILY_STAGE
+    RTS
+
+.none:
+    LDA #$00
+    STA.l !AP_SELECTED_WILY_STAGE
+    RTS
+
+AP_SelectNextAvailableWilyStage:
+    LDA.l !AP_SELECTED_WILY_STAGE
+    INC
+    CMP #$05
+    BCC .store_candidate
+
+    LDA #$01
+
+.store_candidate:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    INC
+    CMP #$05
+    BCC .store_candidate_2
+
+    LDA #$01
+
+.store_candidate_2:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    INC
+    CMP #$05
+    BCC .store_candidate_3
+
+    LDA #$01
+
+.store_candidate_3:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    INC
+    CMP #$05
+    BCC .store_candidate_4
+
+    LDA #$01
+
+.store_candidate_4:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    ; No available Wily stage.
+    LDA #$00
+    STA.l !AP_SELECTED_WILY_STAGE
+
+.done:
+    RTL
+
+AP_SelectPreviousAvailableWilyStage:
+    LDA.l !AP_SELECTED_WILY_STAGE
+    DEC
+    BNE .store_candidate
+
+    LDA #$04
+
+.store_candidate:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    DEC
+    BNE .store_candidate_2
+
+    LDA #$04
+
+.store_candidate_2:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    DEC
+    BNE .store_candidate_3
+
+    LDA #$04
+
+.store_candidate_3:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    LDA.l !AP_SELECTED_WILY_STAGE
+    DEC
+    BNE .store_candidate_4
+
+    LDA #$04
+
+.store_candidate_4:
+    STA.l !AP_SELECTED_WILY_STAGE
+
+    JSR AP_IsSelectedWilyStageAvailable
+    BCS .done
+
+    ; No available Wily stage.
+    LDA #$00
+    STA.l !AP_SELECTED_WILY_STAGE
+
+.done:
+    RTL
+
+AP_IsSelectedWilyStageAvailable:
+    LDA.l !AP_SELECTED_WILY_STAGE
+
+    CMP #$01
+    BEQ .stage_1
+
+    CMP #$02
+    BEQ .stage_2
+
+    CMP #$03
+    BEQ .stage_3
+
+    CMP #$04
+    BEQ .stage_4
+
+.unavailable:
+    CLC
+    RTS
+
+.stage_1:
+    LDA.l !AP_WILY_ACCESS
+    AND #$01
+    BEQ .unavailable
+
+    LDA.l !AP_WILY_FLAGS
+    AND #$01
+    BNE .unavailable
+
+    SEC
+    RTS
+
+.stage_2:
+    LDA.l !AP_WILY_ACCESS
+    AND #$02
+    BEQ .unavailable
+
+    LDA.l !AP_WILY_FLAGS
+    AND #$02
+    BNE .unavailable
+
+    SEC
+    RTS
+
+.stage_3:
+    LDA.l !AP_WILY_ACCESS
+    AND #$04
+    BEQ .unavailable
+
+    LDA.l !AP_WILY_FLAGS
+    AND #$04
+    BNE .unavailable
+
+    SEC
+    RTS
+
+.stage_4:
+    LDA.l !AP_WILY_FLAGS
+    AND #$07
+    CMP #$07
+    BNE .unavailable
+
+    SEC
+    RTS
+
+AP_DrawSelectedWilyStageNumber:
+    PHP
+    SEP #$30
+    PHX
+
+    ; Ensure a selected Wily stage exists if any Wily stage is available.
+    JSL AP_HasAnyAvailableWilyStage
+    BCC .hide
+
+    ; X = selected Wily stage: 1-4
+    LDA.l !AP_SELECTED_WILY_STAGE
+    TAX
+
+    ; slot 124 = $0700 + 4 * 124 = $08F0
+    ; high OAM byte = $0900 + floor(124 / 4) = $091F
+
+    LDA.l AP_WilyStageNumberTileTable,x
+    STA.l $7E08F2
+
+    LDA #$90
+    STA.l $7E08F0 ; X
+
+    LDA #$58
+    STA.l $7E08F1 ; Y
+
+    LDA #$3F
+    STA.l $7E08F3 ; attrs
+
+    ; Slot 124 uses bits 0-1 of $091F.
+    ; Clear only slot 124's high-OAM bits.
+    LDA.l $7E091F
+    AND #$FC
+    STA.l $7E091F
+
+    PLX
+    PLP
+    RTL
+
+.hide:
+    LDA #$E0
+    STA.l $7E08F1
+
+    PLX
+    PLP
+    RTL
+
+AP_WilyStageNumberTileTable:
+    db $00
+    db $25
+    db $26
+    db $27
+    db $28
+    
 assert pc() <= $D8FF00

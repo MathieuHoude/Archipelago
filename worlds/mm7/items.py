@@ -95,6 +95,13 @@ item_table: Dict[str, MM7ItemData] = {
     names.shop_access: MM7ItemData(0x25, ItemClassification.progression),
 
     # ========================================================
+    # Wily Access Codes
+    # ========================================================
+    names.wily_1_access: MM7ItemData(0x2D, ItemClassification.progression),
+    names.wily_2_access: MM7ItemData(0x2E, ItemClassification.progression),
+    names.wily_3_access: MM7ItemData(0x2F, ItemClassification.progression),
+
+    # ========================================================
     # Medals — locked event items
     # ========================================================
     names.burst_man_medal: MM7ItemData(None, ItemClassification.progression),
@@ -195,6 +202,9 @@ access_code_items: Set[str] = {
     names.shade_man_access,
     names.turbo_man_access,
     names.shop_access,
+    names.wily_1_access,
+    names.wily_2_access,
+    names.wily_3_access,
 }
 
 medal_items: Set[str] = {
@@ -253,6 +263,9 @@ rom_receive_id = {
 
     names.proto_man_cloud_man: 0x1D,
     names.proto_man_turbo_man: 0x1E,
+    names.wily_1_access: 0x1F,
+    names.wily_2_access: 0x20,
+    names.wily_3_access: 0x21,
 }
 
 

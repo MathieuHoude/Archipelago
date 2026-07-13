@@ -82,13 +82,20 @@ location_table: Dict[str, MM7LocationData] = {
     # ========================================================
     # Fortress / midboss checks
     # ========================================================
-    names.mash_defeated:       MM7LocationData(0x10, ROBOT_MUSEUM),
-    names.guts_man_g_defeated: MM7LocationData(0x11, WILY_1),
-    names.gamerizer_defeated:  MM7LocationData(0x12, WILY_2),
-    names.hannya_ned_defeated: MM7LocationData(0x13, WILY_3),
+    names.mash_defeated: MM7LocationData(0x10, ROBOT_MUSEUM),
+
+    # Wily boss defeats — locked event locations
+    names.guts_man_g_defeated: MM7LocationData(None, WILY_1),
+    names.gamerizer_defeated:  MM7LocationData(None, WILY_2),
+    names.hannya_ned_defeated: MM7LocationData(None, WILY_3),
+
+    # Wily boss item checks — randomized item locations
+    names.guts_man_g_defeated_item: MM7LocationData(0x32, WILY_1),
+    names.gamerizer_defeated_item:  MM7LocationData(0x33, WILY_2),
+    names.hannya_ned_defeated_item: MM7LocationData(0x34, WILY_3),
 
     # ========================================================
-    # Proto Man — randomized clue meetings and shield check
+    # Proto Man clue meetings and shield check are randomized item locations.
     # ========================================================
     names.proto_man_cloud_man_loc: MM7LocationData(0x14, CLOUD_MAN),
     names.proto_man_turbo_man_loc: MM7LocationData(0x15, TURBO_MAN),
@@ -201,6 +208,18 @@ misc_check_locations = [
     names.mash_defeated
 ]
 
+wily_boss_event_locations = [
+    names.guts_man_g_defeated,
+    names.gamerizer_defeated,
+    names.hannya_ned_defeated,
+]
+
+wily_boss_item_locations = [
+    names.guts_man_g_defeated_item,
+    names.gamerizer_defeated_item,
+    names.hannya_ned_defeated_item,
+]
+
 active_locations = (
     minimal_boss_locations
     + boss_item_locations
@@ -209,8 +228,11 @@ active_locations = (
     + item_bitmap_check_locations
     + mega_check_locations
     + misc_check_locations
+    + wily_boss_event_locations
+    + wily_boss_item_locations
     + [names.wily_capsule]
 )
+
 
 location_name_to_id: Dict[str, int] = {
     location_name: MM7_LOCATION_ID_BASE + data.code
@@ -249,9 +271,12 @@ event_location_to_item: Dict[str, str] = {
     names.burst_man_defeated: names.burst_man_defeated,
     names.spring_man_defeated: names.spring_man_defeated,
 
+    names.guts_man_g_defeated: names.guts_man_g_defeated,
+    names.gamerizer_defeated: names.gamerizer_defeated,
+    names.hannya_ned_defeated: names.hannya_ned_defeated,
+
     names.wily_capsule: names.wily_capsule,
 }
-
 event_locations: Set[str] = set(event_location_to_item)
 
 
@@ -286,6 +311,9 @@ fortress_boss_locations: Set[str] = {
     names.guts_man_g_defeated,
     names.gamerizer_defeated,
     names.hannya_ned_defeated,
+    names.guts_man_g_defeated_item,
+    names.gamerizer_defeated_item,
+    names.hannya_ned_defeated_item,
     names.wily_capsule,
 }
 
@@ -332,9 +360,15 @@ mega_items_locations: Set[str] = {
     names.mega_bolt_spring_man_loc,
 }
 
+wily_boss_item_location_set: Set[str] = {
+    names.guts_man_g_defeated_item,
+    names.gamerizer_defeated_item,
+    names.hannya_ned_defeated_item,
+}
+
 item_name_groups: Dict[str, Set[str]] = {
     "Boss Defeats": main_boss_locations | fortress_boss_locations,
-    "Boss Items": main_boss_item_locations,
+    "Boss Items": main_boss_item_locations | wily_boss_item_location_set,
     "Proto Man": proto_man_locations,
     "Bass": bass_locations,
     "Rush Plates": rush_plate_locations,

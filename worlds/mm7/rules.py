@@ -60,9 +60,24 @@ def has_robot_museum_access(state: CollectionState, player: int) -> bool:
     return defeated_boss_count(state, player) >= 4
 
 
-def has_wily_access(state: CollectionState, player: int) -> bool:
-    return defeated_boss_count(state, player) >= 8
+def has_wily_1_access(state: CollectionState, player: int) -> bool:
+    return state.has(names.wily_1_access, player)
 
+
+def has_wily_2_access(state: CollectionState, player: int) -> bool:
+    return state.has(names.wily_2_access, player)
+
+
+def has_wily_3_access(state: CollectionState, player: int) -> bool:
+    return state.has(names.wily_3_access, player)
+
+
+def has_wily_4_access(state: CollectionState, player: int) -> bool:
+    return (
+        state.has(names.guts_man_g_defeated, player)
+        and state.has(names.gamerizer_defeated, player)
+        and state.has(names.hannya_ned_defeated, player)
+    )
 
 # Super Adapter is not an AP item.
 # In logic, it is derived from all four Rush plates.
@@ -99,6 +114,7 @@ def can_buy_shop_upgrade(state: CollectionState, player: int) -> bool:
 
 def can_get_rush_search_or_buy_shop_upgrade(state: CollectionState, player: int) -> bool:
     return can_use_rush_search(state, player) or can_buy_shop_upgrade(state, player)
+
 
 def can_defeat_boss(state: CollectionState, player: int, boss: str) -> bool:
     if boss not in WEAKNESS_TABLE:
@@ -274,14 +290,40 @@ def set_rules(world: World, multiworld: MultiWorld, player: int) -> None:
     )
 
     # ============================================================
-    # Goal
+    # Wily stages
     #
-    # ROM unlocks Wily with all 8 AP boss medals.
-    # Keep the Wily Capsule location and completion condition aligned.
+    # Base design:
+    # - Wily 1/2/3 are unlocked independently by access-code items.
+    # - They can be cleared in any order.
+    # - Wily 4 / Wily Capsule unlocks after Wily 1/2/3 are cleared.
     # ============================================================
 
+    multiworld.get_location(names.guts_man_g_defeated, player).access_rule = (
+        lambda state: has_wily_1_access(state, player) and can_traverse_vertical
+    )
+
+    multiworld.get_location(names.guts_man_g_defeated_item, player).access_rule = (
+        lambda state: has_wily_1_access(state, player) and can_traverse_vertical
+    )
+
+    multiworld.get_location(names.gamerizer_defeated, player).access_rule = (
+        lambda state: has_wily_2_access(state, player)
+    )
+
+    multiworld.get_location(names.gamerizer_defeated_item, player).access_rule = (
+        lambda state: has_wily_2_access(state, player)
+    )
+
+    multiworld.get_location(names.hannya_ned_defeated, player).access_rule = (
+        lambda state: has_wily_3_access(state, player) and can_traverse_vertical
+    )
+
+    multiworld.get_location(names.hannya_ned_defeated_item, player).access_rule = (
+        lambda state: has_wily_3_access(state, player) and can_traverse_vertical
+    )
+
     multiworld.get_location(names.wily_capsule, player).access_rule = (
-        lambda state: has_wily_access(state, player)
+        lambda state: has_wily_4_access(state, player)
     )
 
     multiworld.completion_condition[player] = (

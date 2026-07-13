@@ -102,9 +102,6 @@ shade_man_defeated_item = "Shade Man Weapon Get"
 turbo_man_defeated = "Turbo Man Defeated"
 turbo_man_defeated_item = "Turbo Man Weapon Get"
 mash_defeated = "Mash Defeated"
-guts_man_g_defeated = "Guts Man G Defeated"
-gamerizer_defeated = "Gamerizer Defeated"
-hannya_ned_defeated = "HannyaNED^2 Defeated"
 
 # ============================================================
 # Locations — Proto Man
@@ -149,6 +146,21 @@ mega_bolt_shade_man_loc = "Shade Man's Mega Bolt Location"
 mega_bolt_turbo_man_loc = "Turbo Man's Mega Bolt Location"
 mega_bolt_junk_man_loc = "Junk Man's Mega Bolt Location"
 mega_health_capsule_loc = "Mega Health Capsule Location"
+
+# Wily access items
+wily_1_access = "Wily 1 Access Code"
+wily_2_access = "Wily 2 Access Code"
+wily_3_access = "Wily 3 Access Code"
+
+# Wily boss event locations
+guts_man_g_defeated = "Guts Man G Defeated"
+gamerizer_defeated = "Gamerizer Defeated"
+hannya_ned_defeated = "HannyaNED^2 Defeated"
+
+# Wily boss randomized item locations
+guts_man_g_defeated_item = "Guts Man G Reward"
+gamerizer_defeated_item = "Gamerizer Reward"
+hannya_ned_defeated_item = "HannyaNED^2 Reward"
 
 # ============================================================
 # Wily Capsule (goal, no item)

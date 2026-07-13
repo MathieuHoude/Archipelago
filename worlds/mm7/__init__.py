@@ -75,14 +75,19 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.energy_balancer,
     names.beat,
 
-    # Fillers for Mega Bolt / Mega Health Capsule locations
+    # Wily access codes
+    names.wily_1_access,
+    names.wily_2_access,
+    names.wily_3_access,
+
+    # Fillers
     names.small_bolt,
-    names.small_bolt,
-    names.small_bolt,
-    names.large_bolt,
     names.large_bolt,
     names.one_up,
     names.one_up,
+    names.e_tank,
+    names.w_tank,
+    names.s_tank,
 ]
 
 # Temporary SNI auth token.
@@ -154,12 +159,6 @@ class MegaMan7World(World):
 
     def set_rules(self) -> None:
         set_mm7_rules(self, self.multiworld, self.player)
-
-        def generate_basic(self) -> None:
-            self.multiworld.completion_condition[self.player] = lambda state: state.has(
-                names.wily_capsule,
-                self.player,
-            )
 
     def get_filler_item_name(self) -> str:
         # Only used if future options create more locations than explicit pool items.
