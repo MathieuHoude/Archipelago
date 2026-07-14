@@ -17,9 +17,6 @@ snes_logger = logging.getLogger("SNES")
 ROM_START = 0x000000
 WRAM_START = 0xF50000
 
-# HiROM internal header. This is intentionally loose for the first prototype.
-MM7_ROM_HEADER = ROM_START + 0x00FFC0
-ROM_HEADER_SIZE = 0x15
 MM7_ROM_AUTH_TOKEN = ROM_START + 0x18FEC0
 MM7_ROM_AUTH_TOKEN_SIZE = 32
 MM7_ROM_AUTH_TOKEN_PREFIX = b"MM7AP"
