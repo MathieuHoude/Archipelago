@@ -111,11 +111,28 @@ class MM7SNIClient(SNIClient):
     patch_suffix = ".apmm7"
 
     async def validate_rom(self, ctx) -> bool:
-        # Temporary prototype auth token.
-        # Later this should be a real AP ROM marker read from the patched ROM.
+        from SNIClient import snes_read
+
+        rom_header = await snes_read(ctx, MM7_ROM_HEADER, ROM_HEADER_SIZE)
+        if rom_header is None:
+            return False
+
+        # SNES internal title at $00FFC0, 21 bytes.
+        try:
+            title = bytes(rom_header).decode("ascii", errors="ignore").strip()
+        except Exception:
+            return False
+
+        # Mega Man 7 USA commonly has "MEGAMAN 7" in the internal title.
+        if "MEGAMAN 7" not in title.upper() and "MEGA MAN 7" not in title.upper() and "MEGAMAN VII" not in title.upper():
+            return False
+
         ctx.game = self.game
         ctx.items_handling = 0b111
         ctx.want_slot_data = True
+
+        # Temporary prototype auth token.
+        # Later this should be read from a ROM marker written by the patch.
         ctx.rom = b"MM7_AP_TEST"
 
         return True
@@ -255,11 +272,6 @@ class MM7SNIClient(SNIClient):
 
             if location_id not in ctx.locations_checked:
                 new_checks.append(location_id)
-
-        if new_checks:
-            await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])
-            for location_id in new_checks:
-                ctx.locations_checked.add(location_id)
 
         if new_checks:
             await ctx.send_msgs([{"cmd": "LocationChecks", "locations": new_checks}])

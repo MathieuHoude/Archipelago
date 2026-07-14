@@ -307,11 +307,13 @@ def set_rules(world: World, multiworld: MultiWorld, player: int) -> None:
     )
 
     multiworld.get_location(names.gamerizer_defeated, player).access_rule = (
-        lambda state: has_wily_2_access(state, player)
+        lambda state: has_wily_2_access(state, player) and 
+        (can_traverse_vertical or state.has(names.freeze_cracker, player))
     )
 
     multiworld.get_location(names.gamerizer_defeated_item, player).access_rule = (
-        lambda state: has_wily_2_access(state, player)
+        lambda state: has_wily_2_access(state, player) and 
+        (can_traverse_vertical or state.has(names.freeze_cracker, player))
     )
 
     multiworld.get_location(names.hannya_ned_defeated, player).access_rule = (
