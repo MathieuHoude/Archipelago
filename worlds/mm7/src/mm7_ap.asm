@@ -2536,5 +2536,26 @@ AP_WilyStageNumberTileTable:
     db $26
     db $27
     db $28
+
+; ============================================
+; AP ROM auth token
+;
+; Written by rom.py after the base bsdiff is applied.
+; Client reads this from ROM and uses it as ctx.rom.
+;
+; File offset: $18FEC0
+; CPU addr:    $D8FEC0
+; Size:        32 bytes
+; ============================================
+
+assert pc() <= $D8FEC0
+
+org $D8FEC0
+AP_ROM_AUTH_TOKEN:
+    db "MM7AP"
+    fillbyte $00
+    fill 27
+
+assert pc() <= $D8FF00
     
 assert pc() <= $D8FF00

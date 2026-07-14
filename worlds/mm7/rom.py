@@ -7,7 +7,7 @@ from typing import Optional, TYPE_CHECKING
 
 import settings
 import Utils
-from worlds.Files import APProcedurePatch
+from worlds.Files import APProcedurePatch, APTokenMixin, APTokenTypes
 
 if TYPE_CHECKING:
     from . import MegaMan7World
@@ -16,6 +16,27 @@ if TYPE_CHECKING:
 # TODO: replace/add these once you settle on the exact clean ROM.
 # Leave empty during early development if you are still validating dumps.
 MM7_KNOWN_MD5: set[str] = set()
+MM7_ROM_AUTH_TOKEN_OFFSET = 0x18FEC0
+MM7_ROM_AUTH_TOKEN_SIZE = 32
+MM7_ROM_AUTH_TOKEN_PREFIX = b"MM7AP"
+
+def get_rom_auth_token(world: "MegaMan7World") -> bytes:
+    player_name = world.multiworld.player_name[world.player]
+    seed_name = world.multiworld.seed_name
+
+    token_source = (
+        f"MM7|{seed_name}|{world.player}|{player_name}"
+    ).encode("utf-8")
+
+    digest = hashlib.sha256(token_source).digest()
+
+    token = (
+        MM7_ROM_AUTH_TOKEN_PREFIX
+        + digest[: MM7_ROM_AUTH_TOKEN_SIZE - len(MM7_ROM_AUTH_TOKEN_PREFIX)]
+    )
+
+    assert len(token) == MM7_ROM_AUTH_TOKEN_SIZE
+    return token
 
 
 class MM7Settings(settings.Group):
@@ -25,30 +46,16 @@ class MM7Settings(settings.Group):
     rom_file: RomFile = RomFile("Megaman VII (USA).sfc")
 
 
-class MM7ProcedurePatch(APProcedurePatch):
-    """Procedure patch for Mega Man 7.
-
-    Minimal development version.
-
-    Expected data file:
-        worlds/mm7/data/mm7_basepatch.bsdiff4
-
-    That bsdiff should be generated from:
-        clean base ROM -> ROM with your current ASM patch applied
-
-    The current Python world/client do the AP randomization and SNI sync.
-    The ROM patch only installs the runtime hooks/mailbox/check flags.
-    """
-
+class MM7ProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Mega Man 7"
     patch_file_ending = ".apmm7"
     result_file_ending = ".sfc"
 
-    # Keep this empty until you confirm exact base ROM checksum(s).
     hash = []
 
     procedure = [
         ("apply_bsdiff4", ["mm7_basepatch.bsdiff4"]),
+        ("apply_tokens", ["mm7_tokens.bin"]),
     ]
 
     @classmethod
@@ -57,18 +64,6 @@ class MM7ProcedurePatch(APProcedurePatch):
 
 
 def patch_rom(world: "MegaMan7World", patch: MM7ProcedurePatch) -> None:
-    """Write files needed by the procedure patch.
-
-    For the current minimal milestone, all ASM changes should live in a
-    prebuilt bsdiff file: data/mm7_basepatch.bsdiff4.
-
-    Later, this function can also write slot-specific bytes/tokens such as:
-    - AP marker
-    - player name
-    - seed name
-    - options
-    - ROM receive ID table, if you decide to externalize it
-    """
     basepatch = pkgutil.get_data(__name__, "data/mm7_basepatch.bsdiff4")
     if basepatch is None:
         raise FileNotFoundError(
@@ -78,6 +73,27 @@ def patch_rom(world: "MegaMan7World", patch: MM7ProcedurePatch) -> None:
 
     patch.write_file("mm7_basepatch.bsdiff4", basepatch)
 
+    auth_token = get_rom_auth_token(world)
+    patch.write_token(APTokenTypes.WRITE, MM7_ROM_AUTH_TOKEN_OFFSET, auth_token)
+    patch.write_file("mm7_tokens.bin", patch.get_token_binary())
+
+def get_rom_auth_token(world: "MegaMan7World") -> bytes:
+    player_name = world.multiworld.player_name[world.player]
+    seed_name = world.multiworld.seed_name
+
+    token_source = (
+        f"MM7|{seed_name}|{world.player}|{player_name}"
+    ).encode("utf-8")
+
+    digest = hashlib.sha256(token_source).digest()
+
+    token = (
+        MM7_ROM_AUTH_TOKEN_PREFIX
+        + digest[: MM7_ROM_AUTH_TOKEN_SIZE - len(MM7_ROM_AUTH_TOKEN_PREFIX)]
+    )
+
+    assert len(token) == MM7_ROM_AUTH_TOKEN_SIZE
+    return token
 
 def get_base_rom_path(file_name: str = "") -> str:
     if file_name:

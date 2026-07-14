@@ -23,7 +23,7 @@ from .locations import (
 )
 
 from .options import MegaMan7Options
-from .rom import MM7ProcedurePatch, MM7Settings, patch_rom
+from .rom import MM7ProcedurePatch, MM7Settings, patch_rom, get_rom_auth_token
 from .client import MM7SNIClient
 from .rules import set_rules as set_mm7_rules
 
@@ -89,11 +89,6 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.w_tank,
     names.s_tank,
 ]
-
-# Temporary SNI auth token.
-# This must match ctx.rom in client.py validate_rom().
-MM7_ROM_AUTH_TOKEN = b"MM7_AP_TEST"
-
 
 class MegaMan7World(World):
     """Mega Man 7 for Archipelago.
@@ -179,14 +174,7 @@ class MegaMan7World(World):
         )
 
     def modify_multidata(self, multidata: Dict[str, Any]) -> None:
-        # SNI clients authenticate using base64(ctx.rom), not the normal player name.
-        # For now this must match client.py:
-        #     ctx.rom = b"MM7_AP_TEST"
-        #
-        # Later, replace this temporary token with a real ROM marker/name written
-        # into the patched ROM, like MMX does with patch.name.
-        auth_name = base64.b64encode(MM7_ROM_AUTH_TOKEN).decode()
-
+        auth_name = base64.b64encode(get_rom_auth_token(self)).decode()
         player_name = self.multiworld.player_name[self.player]
         multidata["connect_names"][auth_name] = multidata["connect_names"][player_name]
 

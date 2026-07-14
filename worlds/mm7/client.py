@@ -20,6 +20,9 @@ WRAM_START = 0xF50000
 # HiROM internal header. This is intentionally loose for the first prototype.
 MM7_ROM_HEADER = ROM_START + 0x00FFC0
 ROM_HEADER_SIZE = 0x15
+MM7_ROM_AUTH_TOKEN = ROM_START + 0x18FEC0
+MM7_ROM_AUTH_TOKEN_SIZE = 32
+MM7_ROM_AUTH_TOKEN_PREFIX = b"MM7AP"
 
 # AP runtime/check block in WRAM.
 # These must match your ASM symbols.
@@ -117,23 +120,28 @@ class MM7SNIClient(SNIClient):
         if rom_header is None:
             return False
 
-        # SNES internal title at $00FFC0, 21 bytes.
         try:
             title = bytes(rom_header).decode("ascii", errors="ignore").strip()
         except Exception:
             return False
 
-        # Mega Man 7 USA commonly has "MEGAMAN 7" in the internal title.
-        if "MEGAMAN 7" not in title.upper() and "MEGA MAN 7" not in title.upper() and "MEGAMAN VII" not in title.upper():
+        title_upper = title.upper()
+        if "MEGAMAN 7" not in title_upper and "MEGA MAN 7" not in title_upper:
+            return False
+
+        auth_token = await snes_read(ctx, MM7_ROM_AUTH_TOKEN, MM7_ROM_AUTH_TOKEN_SIZE)
+        if auth_token is None:
+            return False
+
+        auth_token = bytes(auth_token)
+
+        if not auth_token.startswith(MM7_ROM_AUTH_TOKEN_PREFIX):
             return False
 
         ctx.game = self.game
         ctx.items_handling = 0b111
         ctx.want_slot_data = True
-
-        # Temporary prototype auth token.
-        # Later this should be read from a ROM marker written by the patch.
-        ctx.rom = b"MM7_AP_TEST"
+        ctx.rom = auth_token
 
         return True
 
