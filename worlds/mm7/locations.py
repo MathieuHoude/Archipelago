@@ -1,3 +1,5 @@
+# worlds/mm7/locations.py
+
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 
@@ -21,8 +23,6 @@ class MM7Location(Location):
 # ============================================================
 # Regions
 # ============================================================
-# These strings are intentionally simple. The world/region creation code can
-# either use this region set directly or mirror it with explicit Region objects.
 
 MENU = "Menu"
 INTRO_STAGE = "Intro Stage"
@@ -46,17 +46,10 @@ WILY_4 = "Wily 4"
 # ============================================================
 # Location table
 # ============================================================
-# Notes:
-# - code=None marks an event-only location. These locations should receive
-#   locked event items in __init__.py / create_regions.
-# - Boss defeated locations are event locations that award medals.
-# - Boss defeated "- Item" locations are normal randomized checks.
-# - Proto Man clue meetings are event locations that award the two clue items.
-# - Wily Capsule Defeated is the goal event.
 
 location_table: Dict[str, MM7LocationData] = {
     # ========================================================
-    # Main boss defeats — locked medal event locations
+    # Main boss defeats — locked event locations
     # ========================================================
     names.freeze_man_defeated: MM7LocationData(None, FREEZE_MAN),
     names.cloud_man_defeated:  MM7LocationData(None, CLOUD_MAN),
@@ -100,13 +93,6 @@ location_table: Dict[str, MM7LocationData] = {
     names.proto_man_cloud_man_loc: MM7LocationData(0x14, CLOUD_MAN),
     names.proto_man_turbo_man_loc: MM7LocationData(0x15, TURBO_MAN),
     names.proto_shield_loc:        MM7LocationData(0x16, SHADE_MAN),
-
-    # ========================================================
-    # Bass checks
-    # ========================================================
-    names.bass_intro:  MM7LocationData(0x17, ROBOT_MUSEUM),
-    names.bass_wily_1: MM7LocationData(0x18, WILY_1),
-    names.bass_wily_2: MM7LocationData(0x19, WILY_2),
 
     # ========================================================
     # Rush Plates and unique upgrade pickups — 0x0BA4 bitfield
@@ -277,7 +263,7 @@ event_location_to_item: Dict[str, str] = {
 
     names.wily_capsule: names.wily_capsule,
 }
-event_locations: Set[str] = set(event_location_to_item)
+event_locations: Set[str] = set(event_location_to_item.keys())
 
 
 # ============================================================
@@ -306,14 +292,20 @@ main_boss_item_locations: Set[str] = {
     names.turbo_man_defeated_item,
 }
 
-fortress_boss_locations: Set[str] = {
-    names.mash_defeated,
+fortress_boss_event_locations: Set[str] = {
     names.guts_man_g_defeated,
     names.gamerizer_defeated,
     names.hannya_ned_defeated,
+}
+
+fortress_boss_item_locations: Set[str] = {
+    names.mash_defeated,
     names.guts_man_g_defeated_item,
     names.gamerizer_defeated_item,
     names.hannya_ned_defeated_item,
+}
+
+goal_locations: Set[str] = {
     names.wily_capsule,
 }
 
@@ -321,12 +313,6 @@ proto_man_locations: Set[str] = {
     names.proto_man_cloud_man_loc,
     names.proto_man_turbo_man_loc,
     names.proto_shield_loc,
-}
-
-bass_locations: Set[str] = {
-    names.bass_intro,
-    names.bass_wily_1,
-    names.bass_wily_2,
 }
 
 rush_plate_locations: Set[str] = {
@@ -367,14 +353,14 @@ wily_boss_item_location_set: Set[str] = {
 }
 
 item_name_groups: Dict[str, Set[str]] = {
-    "Boss Defeats": main_boss_locations | fortress_boss_locations,
-    "Boss Items": main_boss_item_locations | wily_boss_item_location_set,
+    "Boss Defeats": main_boss_locations | fortress_boss_event_locations,
+    "Boss Items": main_boss_item_locations | fortress_boss_item_locations,
     "Proto Man": proto_man_locations,
-    "Bass": bass_locations,
     "Rush Plates": rush_plate_locations,
     "Rush Items": rush_item_locations,
     "Unique Upgrades": unique_upgrade_locations,
     "Mega Items": mega_items_locations,
+    "Goal": goal_locations,
 }
 
 

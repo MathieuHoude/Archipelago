@@ -1,7 +1,7 @@
 import unittest
 
 from .. import names
-from .. import MINIMAL_ITEM_POOL
+from .. import ITEM_POOL
 from ..items import item_table, rom_receive_id
 from ..locations import (
     active_locations,
@@ -67,8 +67,8 @@ class TestMM7PoolTables(unittest.TestCase):
 
         self.assertEqual(
             len(randomized_active_locations),
-            len(MINIMAL_ITEM_POOL),
-            "MINIMAL_ITEM_POOL must contain exactly one item per randomized active location.",
+            len(ITEM_POOL),
+            "ITEM_POOL must contain exactly one item per randomized active location.",
         )
     def test_active_locations_exist_in_location_table(self) -> None:
         for location_name in active_locations:

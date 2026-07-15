@@ -1,3 +1,5 @@
+# worlds/mm7/rom.py
+
 from __future__ import annotations
 
 import hashlib
@@ -13,8 +15,6 @@ if TYPE_CHECKING:
     from . import MegaMan7World
 
 
-# TODO: replace/add these once you settle on the exact clean ROM.
-# Leave empty during early development if you are still validating dumps.
 MM7_KNOWN_MD5: set[str] = set()
 MM7_ROM_AUTH_TOKEN_OFFSET = 0x18FEC0
 MM7_ROM_AUTH_TOKEN_SIZE = 32

@@ -43,20 +43,6 @@ AP_MEGA_FLAGS = WRAM_START + 0x1FB2
 AP_MISC_FLAGS = WRAM_START + 0x1FB3
 AP_WILY_FLAGS = WRAM_START + 0x1FB4
 
-# Boss medal/check flag order confirmed from testing:
-# 01 = Freeze, 02 = Cloud, 04 = Junk, 08 = Turbo,
-# 10 = Slash, 20 = Shade, 40 = Burst, 80 = Spring.
-BOSS_FLAG_TO_LOCATION: Dict[int, str] = {
-    0x01: names.freeze_man_defeated,
-    0x02: names.cloud_man_defeated,
-    0x04: names.junk_man_defeated,
-    0x08: names.turbo_man_defeated,
-    0x10: names.slash_man_defeated,
-    0x20: names.shade_man_defeated,
-    0x40: names.burst_man_defeated,
-    0x80: names.spring_man_defeated,
-}
-
 BOSS_FLAG_TO_ITEM_LOCATION: Dict[int, str] = {
     0x01: names.freeze_man_defeated_item,
     0x02: names.cloud_man_defeated_item,
@@ -98,7 +84,7 @@ MEGA_FLAG_TO_LOCATION = {
     0x08: names.mega_bolt_cloud_man_loc,
     0x10: names.mega_health_capsule_loc,
     0x20: names.mega_bolt_spring_man_loc,
-} 
+}
 
 MISC_FLAG_TO_LOCATION = {
     0x01: names.beat_loc,
@@ -178,8 +164,7 @@ class MM7SNIClient(SNIClient):
 
             if location_id not in ctx.locations_checked:
                 new_checks.append(location_id)
-
-        
+                
         proto_flags_raw = await snes_read(ctx, AP_BOSS_FLAGS_2, 1)
         if proto_flags_raw is None:
             return

@@ -1,3 +1,5 @@
+# worlds/mm7/__init__.py
+
 from __future__ import annotations
 
 import base64
@@ -13,6 +15,7 @@ from .items import (
     item_groups,
     item_name_to_id,
     create_item as create_mm7_item,
+    get_filler_item_name as get_mm7_filler_item_name,
 )
 
 from .locations import (
@@ -37,13 +40,13 @@ class MegaMan7WebWorld(WebWorld):
             language="English",
             file_name="setup_en.md",
             link="setup/en",
-            authors=["YourName"],
+            authors=["SanchoBob"],
         )
     ]
 
 
 # One randomized item per active non-event location.
-MINIMAL_ITEM_POOL: List[str] = [
+ITEM_POOL: List[str] = [
     # Weapons
     names.freeze_cracker,
     names.danger_wrap,
@@ -81,11 +84,11 @@ MINIMAL_ITEM_POOL: List[str] = [
     names.wily_3_access,
 
     # Fillers
-    names.small_bolt,
-    names.large_bolt,
     names.one_up,
     names.one_up,
     names.e_tank,
+    names.e_tank,
+    names.w_tank,
     names.w_tank,
     names.s_tank,
 ]
@@ -93,11 +96,8 @@ MINIMAL_ITEM_POOL: List[str] = [
 class MegaMan7World(World):
     """Mega Man 7 for Archipelago.
 
-    Development version:
-    - creates Robot Master boss item checks
-    - randomizes weapons, Proto checks, Rush items, Rush plates, and selected upgrades
-    - uses the SNI client to read AP flags from WRAM
-    - uses the ROM mailbox to receive items
+    Randomizes Robot Master rewards, major upgrades, Rush items, Proto Man checks,
+    Wily access codes, and selected stage pickups.
     """
 
     game = "Mega Man 7"
@@ -125,7 +125,7 @@ class MegaMan7World(World):
     def create_items(self) -> None:
         self.multiworld.itempool += [
             self.create_item(item_name)
-            for item_name in MINIMAL_ITEM_POOL
+            for item_name in ITEM_POOL
         ]
 
     def create_regions(self) -> None:
@@ -156,8 +156,7 @@ class MegaMan7World(World):
         set_mm7_rules(self, self.multiworld, self.player)
 
     def get_filler_item_name(self) -> str:
-        # Only used if future options create more locations than explicit pool items.
-        return names.small_bolt
+        return get_mm7_filler_item_name(self)
 
     def generate_output(self, output_directory: str) -> None:
         patch = MM7ProcedurePatch(
@@ -168,8 +167,7 @@ class MegaMan7World(World):
         patch.write(
             os.path.join(
                 output_directory,
-                f"MM7_{self.multiworld.player_name[self.player]}_"
-                f"{self.multiworld.seed_name}.apmm7",
+                f"{self.multiworld.get_out_file_name_base(self.player)}.apmm7",
             )
         )
 

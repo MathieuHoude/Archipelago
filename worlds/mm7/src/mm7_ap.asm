@@ -1,4 +1,4 @@
-; MM7 Archipelago - Test Patch
+; MM7 Archipelago Patch
 ; Mega Man 7 (USA)
 
 hirom
@@ -194,10 +194,8 @@ org $C00DBC
     JML AP_StageExitAPOnlyBossGate
     NOP
 
-; ============================================
 ; Wily unlock gate.
-; Replaces vanilla all-weapons check with AP boss flags check.
-; ============================================
+; Replaces vanilla all-weapons check with AP Wily Access Code checks.
 
 org $C00DE1
     JML AP_WilyUnlockGate
@@ -966,18 +964,7 @@ AP_CheckItemReceive:
     CMP #$16
     BNE +
     JMP .give_one_up
-+
 
-    ; $17 = Small Bolt
-    CMP #$17
-    BNE +
-    JMP .give_small_bolt
-+
-
-    ; $18 = Large Bolt
-    CMP #$18
-    BNE +
-    JMP .give_large_bolt
 +
 
     ; $19 = E-Tank
@@ -996,12 +983,6 @@ AP_CheckItemReceive:
     CMP #$1B
     BNE +
     JMP .give_s_tank
-+
-
-    ; $1C = Beat Whistle
-    CMP #$1C
-    BNE +
-    JMP .give_beat_whistle
 +
 
     ; $1D = Proto Man Cloud Man clue
@@ -1099,14 +1080,6 @@ AP_CheckItemReceive:
     INC $0B81
     JMP .finish
 
-.give_small_bolt:
-    JSR AP_AddSmallBolts
-    JMP .finish
-
-.give_large_bolt:
-    JSR AP_AddLargeBolts
-    JMP .finish
-
 .give_e_tank:
     INC $0BA0
     JMP .finish
@@ -1117,11 +1090,6 @@ AP_CheckItemReceive:
 
 .give_s_tank:
     INC $0BA2
-    JMP .finish
-
-.give_beat_whistle:
-    LDA #$84
-    STA.l $7E0BA3
     JMP .finish
 
 .give_proto_cloud_clue:
@@ -1207,14 +1175,6 @@ AP_WeaponAddressTable:
     dw $0B97 ; $0A Rush Search
     dw $0B99 ; $0B Rush Jet
 
-AP_WilyStageClearBitTable:
-    db $00 ; 0 = unused / Wily not started
-    db $01 ; 1 -> Guts Man G
-    db $02 ; 2 -> Gamerizer
-    db $04 ; 3 -> HannyaNED²
-    db $00 ; 4 -> no AP check
-    db $00 ; 5 -> no AP check
-
 AP_EnsureVanillaWilyAvailable:
     ; $0B7C must be nonzero for the vanilla stage-select Wily box setup.
     ; AP_SELECTED_WILY_STAGE remains the AP-owned selected Wily stage.
@@ -1225,26 +1185,6 @@ AP_EnsureVanillaWilyAvailable:
     STA.l $7E0B7C
 
 .done:
-    RTS
-
-AP_AddSmallBolts:
-    CLC
-    LDA.l $7E0BA6
-    ADC #$05
-    STA.l $7E0BA6
-    LDA.l $7E0BA7
-    ADC #$00
-    STA.l $7E0BA7
-    RTS
-
-AP_AddLargeBolts:
-    CLC
-    LDA.l $7E0BA6
-    ADC #$32
-    STA.l $7E0BA6
-    LDA.l $7E0BA7
-    ADC #$00
-    STA.l $7E0BA7
     RTS
 
 ; ============================================
@@ -2057,9 +1997,9 @@ AP_RobotMuseumRouteGate:
     SEP #$30
     PHX
 
-    ; If Robot Museum route/check already happened, use normal route.
+    ; If Mash was already checked, use normal route.
     LDA.l !AP_MISC_FLAGS
-    AND #$06        ; $02 = Mash checked, $04 = route already triggered
+    AND #$02        ; $02 = Mash checked
     BNE .normal_route
 
     ; Count AP defeated Robot Masters.
@@ -2085,12 +2025,6 @@ AP_RobotMuseumRouteGate:
     BRA .count_loop
 
 .go_robot_museum:
-    ; Mark Robot Museum route as triggered so it does not repeat
-    ; if the player exits/dies/re-enters awkwardly before Mash check.
-    LDA.l !AP_MISC_FLAGS
-    ORA #$04
-    STA.l !AP_MISC_FLAGS
-
     PLX
     PLP
     JML $C00C72

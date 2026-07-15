@@ -1,3 +1,5 @@
+# worlds/mm7/rules.py
+
 from BaseClasses import MultiWorld, CollectionState
 from worlds.AutoWorld import World
 
@@ -299,29 +301,29 @@ def set_rules(world: World, multiworld: MultiWorld, player: int) -> None:
     # ============================================================
 
     multiworld.get_location(names.guts_man_g_defeated, player).access_rule = (
-        lambda state: has_wily_1_access(state, player) and can_traverse_vertical
+        lambda state: has_wily_1_access(state, player) and can_traverse_vertical(state, player)
     )
 
     multiworld.get_location(names.guts_man_g_defeated_item, player).access_rule = (
-        lambda state: has_wily_1_access(state, player) and can_traverse_vertical
+        lambda state: has_wily_1_access(state, player) and can_traverse_vertical(state, player)
     )
 
     multiworld.get_location(names.gamerizer_defeated, player).access_rule = (
-        lambda state: has_wily_2_access(state, player) and 
-        (can_traverse_vertical or state.has(names.freeze_cracker, player))
+        lambda state: has_wily_2_access(state, player) and
+        (can_traverse_vertical(state, player) or state.has(names.freeze_cracker, player))
     )
 
     multiworld.get_location(names.gamerizer_defeated_item, player).access_rule = (
-        lambda state: has_wily_2_access(state, player) and 
-        (can_traverse_vertical or state.has(names.freeze_cracker, player))
+        lambda state: has_wily_2_access(state, player) and
+        (can_traverse_vertical(state, player) or state.has(names.freeze_cracker, player))
     )
 
     multiworld.get_location(names.hannya_ned_defeated, player).access_rule = (
-        lambda state: has_wily_3_access(state, player) and can_traverse_vertical
+        lambda state: has_wily_3_access(state, player) and can_traverse_vertical(state, player)
     )
 
     multiworld.get_location(names.hannya_ned_defeated_item, player).access_rule = (
-        lambda state: has_wily_3_access(state, player) and can_traverse_vertical
+        lambda state: has_wily_3_access(state, player) and can_traverse_vertical(state, player)
     )
 
     multiworld.get_location(names.wily_capsule, player).access_rule = (

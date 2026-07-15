@@ -1,8 +1,11 @@
-from test.bases import WorldTestBase
+from .bases import MM7TestBase
 
 
-class MM7TestBase(WorldTestBase):
-    game = "Mega Man 7"
+class TestDefaultLogic(MM7TestBase):
+    options = {
+        "logic_boss_weakness": True,
+    }
+
 
 class TestNoBossWeaknessLogic(MM7TestBase):
     options = {

@@ -9,6 +9,30 @@ class TestWilyLogic(MM7TestBase):
         "logic_boss_weakness": True,
     }
 
+    vertical_options = [
+        [names.rush_coil],
+        [names.rush_jet],
+        [
+            names.rush_r_plate,
+            names.rush_u_plate,
+            names.rush_s_plate,
+            names.rush_h_plate,
+        ],
+    ]
+
+    @classmethod
+    def with_wily_access(cls, access_item: str) -> list[list[str]]:
+        return [
+            [access_item] + vertical_option
+            for vertical_option in cls.vertical_options
+        ]
+
+    @classmethod
+    def with_wily_2_access(cls) -> list[list[str]]:
+        return cls.with_wily_access(names.wily_2_access) + [
+            [names.wily_2_access, names.freeze_cracker],
+        ]
+
     def test_wily_capsule_requires_wily_boss_events(self) -> None:
         state = CollectionState(self.multiworld)
 
@@ -34,43 +58,43 @@ class TestWilyLogic(MM7TestBase):
             self.multiworld.get_location(names.wily_capsule, self.player).can_reach(state),
             "Wily Capsule should be reachable after all three Wily boss defeated events.",
         )
-    
+
     def test_guts_man_g_reward_requires_wily_1_access(self) -> None:
         self.assertAccessDependency(
             [names.guts_man_g_defeated_item],
-            [[names.wily_1_access]],
+            self.with_wily_access(names.wily_1_access),
             only_check_listed=True,
         )
 
     def test_gamerizer_reward_requires_wily_2_access(self) -> None:
         self.assertAccessDependency(
             [names.gamerizer_defeated_item],
-            [[names.wily_2_access]],
+            self.with_wily_2_access(),
             only_check_listed=True,
         )
 
     def test_hannya_ned_reward_requires_wily_3_access(self) -> None:
         self.assertAccessDependency(
             [names.hannya_ned_defeated_item],
-            [[names.wily_3_access]],
+            self.with_wily_access(names.wily_3_access),
             only_check_listed=True,
         )
 
     def test_wily_boss_events_require_access_codes(self) -> None:
         self.assertAccessDependency(
             [names.guts_man_g_defeated],
-            [[names.wily_1_access]],
+            self.with_wily_access(names.wily_1_access),
             only_check_listed=True,
         )
 
         self.assertAccessDependency(
             [names.gamerizer_defeated],
-            [[names.wily_2_access]],
+            self.with_wily_2_access(),
             only_check_listed=True,
         )
 
         self.assertAccessDependency(
             [names.hannya_ned_defeated],
-            [[names.wily_3_access]],
+            self.with_wily_access(names.wily_3_access),
             only_check_listed=True,
         )

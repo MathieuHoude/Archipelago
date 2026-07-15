@@ -1,3 +1,5 @@
+# worlds/mm7/items.py
+
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 
@@ -22,14 +24,6 @@ class MM7Item(Item):
 # ============================================================
 # Item table
 # ============================================================
-#
-# Notes:
-# - Super Adapter is intentionally not a randomized AP item.
-#   It should be derived from owning all four Rush Plates:
-#   Rush R Plate + Rush U Plate + Rush S Plate + Rush H Plate.
-# - Medals and Wily Capsule are event items. They use code=None and
-#   should be placed as locked items at their corresponding locations.
-# - Counts for filler items can be tuned later once locations.py is final.
 
 item_table: Dict[str, MM7ItemData] = {
     # ========================================================
@@ -70,29 +64,10 @@ item_table: Dict[str, MM7ItemData] = {
     names.beat: MM7ItemData(0x14, ItemClassification.useful),
 
     # ========================================================
-    # Unique progression/event-like items from checks
+    # Protoman Clues
     # ========================================================
     names.proto_man_cloud_man: MM7ItemData(0x15, ItemClassification.progression),
     names.proto_man_turbo_man: MM7ItemData(0x16, ItemClassification.progression),
-    names.mega_bolt_cloud_man: MM7ItemData(0x17, ItemClassification.useful),
-    names.mega_bolt_spring_man: MM7ItemData(0x18, ItemClassification.useful),
-    names.mega_bolt_shade_man: MM7ItemData(0x19, ItemClassification.useful),
-    names.mega_bolt_turbo_man: MM7ItemData(0x1A, ItemClassification.useful),
-    names.mega_bolt_junk_man: MM7ItemData(0x1B, ItemClassification.useful),
-    names.mega_health_capsule: MM7ItemData(0x1C, ItemClassification.useful),
-
-    # ========================================================
-    # Access Codes
-    # ========================================================
-    names.burst_man_access: MM7ItemData(0x1D, ItemClassification.progression),
-    names.cloud_man_access: MM7ItemData(0x1E, ItemClassification.progression),
-    names.junk_man_access: MM7ItemData(0x1F, ItemClassification.progression),
-    names.freeze_man_access: MM7ItemData(0x20, ItemClassification.progression),
-    names.slash_man_access: MM7ItemData(0x21, ItemClassification.progression),
-    names.spring_man_access: MM7ItemData(0x22, ItemClassification.progression),
-    names.shade_man_access: MM7ItemData(0x23, ItemClassification.progression),
-    names.turbo_man_access: MM7ItemData(0x24, ItemClassification.progression),
-    names.shop_access: MM7ItemData(0x25, ItemClassification.progression),
 
     # ========================================================
     # Wily Access Codes
@@ -102,16 +77,20 @@ item_table: Dict[str, MM7ItemData] = {
     names.wily_3_access: MM7ItemData(0x2F, ItemClassification.progression),
 
     # ========================================================
-    # Medals — locked event items
+    # Event items — locked at event locations
     # ========================================================
-    names.burst_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.cloud_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.junk_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.freeze_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.slash_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.spring_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.shade_man_medal: MM7ItemData(None, ItemClassification.progression),
-    names.turbo_man_medal: MM7ItemData(None, ItemClassification.progression),
+    names.burst_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.cloud_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.junk_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.freeze_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.slash_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.spring_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.shade_man_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.turbo_man_defeated: MM7ItemData(None, ItemClassification.progression),
+
+    names.guts_man_g_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.gamerizer_defeated: MM7ItemData(None, ItemClassification.progression),
+    names.hannya_ned_defeated: MM7ItemData(None, ItemClassification.progression),
 
     # Goal — locked event item
     names.wily_capsule: MM7ItemData(None, ItemClassification.progression),
@@ -119,13 +98,10 @@ item_table: Dict[str, MM7ItemData] = {
     # ========================================================
     # Filler
     # ========================================================
-    names.one_up: MM7ItemData(0x26, ItemClassification.filler, 4),
-    names.small_bolt: MM7ItemData(0x27, ItemClassification.filler, 12),
-    names.large_bolt: MM7ItemData(0x28, ItemClassification.filler, 8),
-    names.e_tank: MM7ItemData(0x29, ItemClassification.filler, 4),
-    names.w_tank: MM7ItemData(0x2A, ItemClassification.filler, 3),
-    names.s_tank: MM7ItemData(0x2B, ItemClassification.filler, 2),
-    names.beat_whistle: MM7ItemData(0x2C, ItemClassification.filler, 2),
+    names.one_up: MM7ItemData(0x26, ItemClassification.filler, 2),
+    names.e_tank: MM7ItemData(0x29, ItemClassification.filler, 2),
+    names.w_tank: MM7ItemData(0x2A, ItemClassification.filler, 2),
+    names.s_tank: MM7ItemData(0x2B, ItemClassification.filler, 1),
 }
 
 
@@ -193,29 +169,9 @@ rush_plate_items: Set[str] = {
 }
 
 access_code_items: Set[str] = {
-    names.burst_man_access,
-    names.cloud_man_access,
-    names.junk_man_access,
-    names.freeze_man_access,
-    names.slash_man_access,
-    names.spring_man_access,
-    names.shade_man_access,
-    names.turbo_man_access,
-    names.shop_access,
     names.wily_1_access,
     names.wily_2_access,
     names.wily_3_access,
-}
-
-medal_items: Set[str] = {
-    names.burst_man_medal,
-    names.cloud_man_medal,
-    names.junk_man_medal,
-    names.freeze_man_medal,
-    names.slash_man_medal,
-    names.spring_man_medal,
-    names.shade_man_medal,
-    names.turbo_man_medal,
 }
 
 item_groups: Dict[str, Set[str]] = {
@@ -223,7 +179,6 @@ item_groups: Dict[str, Set[str]] = {
     "Rush Items": rush_items,
     "Rush Plates": rush_plate_items,
     "Access Codes": access_code_items,
-    "Medals": medal_items,
     "Filler": set(filler_items),
 }
 
@@ -254,12 +209,9 @@ rom_receive_id = {
     names.beat: 0x15,
 
     names.one_up: 0x16,
-    names.small_bolt: 0x17,
-    names.large_bolt: 0x18,
     names.e_tank: 0x19,
     names.w_tank: 0x1A,
     names.s_tank: 0x1B,
-    names.beat_whistle: 0x1C,
 
     names.proto_man_cloud_man: 0x1D,
     names.proto_man_turbo_man: 0x1E,
