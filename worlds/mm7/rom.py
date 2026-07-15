@@ -24,10 +24,7 @@ def get_rom_auth_token(world: "MegaMan7World") -> bytes:
     player_name = world.multiworld.player_name[world.player]
     seed_name = world.multiworld.seed_name
 
-    token_source = (
-        f"MM7|{seed_name}|{world.player}|{player_name}"
-    ).encode("utf-8")
-
+    token_source = f"MM7|{seed_name}|{world.player}|{player_name}".encode("utf-8")
     digest = hashlib.sha256(token_source).digest()
 
     token = (
@@ -77,23 +74,6 @@ def patch_rom(world: "MegaMan7World", patch: MM7ProcedurePatch) -> None:
     patch.write_token(APTokenTypes.WRITE, MM7_ROM_AUTH_TOKEN_OFFSET, auth_token)
     patch.write_file("mm7_tokens.bin", patch.get_token_binary())
 
-def get_rom_auth_token(world: "MegaMan7World") -> bytes:
-    player_name = world.multiworld.player_name[world.player]
-    seed_name = world.multiworld.seed_name
-
-    token_source = (
-        f"MM7|{seed_name}|{world.player}|{player_name}"
-    ).encode("utf-8")
-
-    digest = hashlib.sha256(token_source).digest()
-
-    token = (
-        MM7_ROM_AUTH_TOKEN_PREFIX
-        + digest[: MM7_ROM_AUTH_TOKEN_SIZE - len(MM7_ROM_AUTH_TOKEN_PREFIX)]
-    )
-
-    assert len(token) == MM7_ROM_AUTH_TOKEN_SIZE
-    return token
 
 def get_base_rom_path(file_name: str = "") -> str:
     if file_name:

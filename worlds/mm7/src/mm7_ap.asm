@@ -2557,5 +2557,3 @@ AP_ROM_AUTH_TOKEN:
     fill 27
 
 assert pc() <= $D8FF00
-    
-assert pc() <= $D8FF00
